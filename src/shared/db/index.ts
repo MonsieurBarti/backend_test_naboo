@@ -1,1 +1,5 @@
-// Plan 02 will add mongoose-repository.base export here
+export { InMemoryRepositoryBase } from "./in-memory-repository.base";
+export {
+  EntityMapper,
+  MongooseRepositoryBase,
+} from "./mongoose-repository.base";
