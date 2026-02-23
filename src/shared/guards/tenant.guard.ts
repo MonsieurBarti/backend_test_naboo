@@ -8,9 +8,12 @@ import {
 import { Reflector } from "@nestjs/core";
 import { GqlExecutionContext } from "@nestjs/graphql";
 import type { FastifyRequest } from "fastify";
+import { z } from "zod";
 
 export const IS_PUBLIC_KEY = "isPublic";
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+
+const tenantIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/);
 
 @Injectable()
 export class TenantGuard implements CanActivate {
@@ -24,9 +27,9 @@ export class TenantGuard implements CanActivate {
     if (isPublic) return true;
 
     const request = this.getRequest(context);
-    const tenantId = request.headers["x-tenant-id"] as string | undefined;
+    const result = tenantIdSchema.safeParse(request.headers["x-tenant-id"]);
 
-    if (!tenantId || !/^[0-9a-fA-F]{24}$/.test(tenantId)) {
+    if (!result.success) {
       throw new BadRequestException("Missing or invalid x-tenant-id header");
     }
 
