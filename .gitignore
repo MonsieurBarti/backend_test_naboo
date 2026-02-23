@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+/dist/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Prisma generated client
+/generated/prisma/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code
+.claude/
+
+# GSD Planning
+.planning/
+
+# Code Graph
+.code-graph/
+
+# Dev Container
+.devcontainer/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+
+# Local logger config (personal dev preferences)
+src/shared/logger/local-logger.config.ts
+
+# Temporary files
+*.tmp
+*.bak

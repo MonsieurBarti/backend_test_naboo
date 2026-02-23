@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "code-graph": {
+      "command": "code-graph",
+      "args": ["mcp", "/workspace"]
+    }
+  }
+}

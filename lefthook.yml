@@ -1,0 +1,23 @@
+pre-commit:
+  commands:
+    no-ignored-files:
+      run: |
+        ignored=$(git diff --cached --name-only | git check-ignore --no-index --stdin 2>/dev/null)
+        if [ -n "$ignored" ]; then
+          echo "ERROR: Staged files that match .gitignore patterns:"
+          echo "$ignored"
+          echo "Unstage them with: git reset HEAD <file>"
+          exit 1
+        fi
+    lint:
+      glob: "*.{ts,json}"
+      run: pnpm biome check --write --no-errors-on-unmatched {staged_files}
+      stage_fixed: true
+
+pre-push:
+  parallel: true
+  commands:
+    test:
+      run: pnpm test:unit
+    build:
+      run: pnpm build
