@@ -10,9 +10,9 @@ export const recurrencePatternSchema = z.object({
   frequency: frequencySchema,
   interval: z.number().int().positive().optional(),
   byDay: z.array(dayOfWeekSchema).optional(),
-  byMonthDay: z.array(z.number().int().min(1).max(31)).optional(),
-  byMonth: z.array(z.number().int().min(1).max(12)).optional(),
-  until: z.date().optional(),
+  byMonthDay: z.array(z.number().int().min(1).max(31)).nullish(),
+  byMonth: z.array(z.number().int().min(1).max(12)).nullish(),
+  until: z.date().nullish(),
   count: z.number().int().positive().optional(),
 });
 

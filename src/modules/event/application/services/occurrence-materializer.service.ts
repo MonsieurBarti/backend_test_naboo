@@ -27,10 +27,10 @@ export function materializeOccurrenceDates(pattern: RecurrencePatternProps, dtst
     freq: FREQ_MAP[pattern.frequency],
     interval: pattern.interval ?? 1,
     byweekday: pattern.byDay?.map((d) => DAY_MAP[d]),
-    bymonthday: pattern.byMonthDay,
-    bymonth: pattern.byMonth,
+    bymonthday: pattern.byMonthDay ?? undefined,
+    bymonth: pattern.byMonth ?? undefined,
     dtstart,
-    until: pattern.until,
+    until: pattern.until ?? undefined,
     count: pattern.count,
   });
 
