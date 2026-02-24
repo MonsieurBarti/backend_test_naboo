@@ -1,6 +1,9 @@
 import { AggregateRoot } from "@nestjs/cqrs";
 import type { RecurrencePatternProps } from "src/modules/event/domain/event/recurrence-pattern";
 import { recurrencePatternSchema } from "src/modules/event/domain/event/recurrence-pattern";
+import { EventCreatedEvent } from "src/modules/event/domain/events/event-created.event";
+import { EventDeletedEvent } from "src/modules/event/domain/events/event-deleted.event";
+import { EventUpdatedEvent } from "src/modules/event/domain/events/event-updated.event";
 import { IDateProvider } from "src/shared/date/date-provider";
 import { ZodError, z } from "zod";
 
@@ -30,7 +33,7 @@ export class Event extends AggregateRoot {
     props: Omit<EventProps, "deletedAt" | "createdAt" | "updatedAt">,
     dateProvider: IDateProvider,
   ): Event {
-    return new Event(
+    const event = new Event(
       EventPropsSchema.parse({
         ...props,
         createdAt: dateProvider.now(),
@@ -38,6 +41,10 @@ export class Event extends AggregateRoot {
         deletedAt: undefined,
       }),
     );
+    event.apply(
+      new EventCreatedEvent({ aggregateId: event.id, organizationId: event.organizationId }),
+    );
+    return event;
   }
 
   static create(props: EventProps): Event {
@@ -52,6 +59,9 @@ export class Event extends AggregateRoot {
 
   softDelete(now: Date): void {
     this.props = { ...this.props, deletedAt: now };
+    this.apply(
+      new EventDeletedEvent({ aggregateId: this.id, organizationId: this.organizationId }),
+    );
   }
 
   update(
@@ -70,6 +80,9 @@ export class Event extends AggregateRoot {
     now: Date,
   ): void {
     this.props = { ...this.props, ...changes, updatedAt: now };
+    this.apply(
+      new EventUpdatedEvent({ aggregateId: this.id, organizationId: this.organizationId }),
+    );
   }
 
   get id(): string {

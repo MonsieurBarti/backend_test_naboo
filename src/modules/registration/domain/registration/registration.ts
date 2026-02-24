@@ -1,4 +1,6 @@
 import { AggregateRoot } from "@nestjs/cqrs";
+import { RegistrationCancelledEvent } from "src/modules/registration/domain/events/registration-cancelled.event";
+import { RegistrationCreatedEvent } from "src/modules/registration/domain/events/registration-created.event";
 import { IDateProvider } from "src/shared/date/date-provider";
 import { ZodError, z } from "zod";
 
@@ -29,7 +31,7 @@ export class Registration extends AggregateRoot {
     props: Omit<RegistrationProps, "deletedAt" | "status" | "createdAt" | "updatedAt">,
     dateProvider: IDateProvider,
   ): Registration {
-    return new Registration(
+    const registration = new Registration(
       RegistrationPropsSchema.parse({
         ...props,
         status: "active",
@@ -38,6 +40,14 @@ export class Registration extends AggregateRoot {
         updatedAt: dateProvider.now(),
       }),
     );
+    registration.apply(
+      new RegistrationCreatedEvent({
+        aggregateId: registration.id,
+        organizationId: registration.organizationId,
+        occurrenceId: registration.occurrenceId,
+      }),
+    );
+    return registration;
   }
 
   static create(props: RegistrationProps): Registration {
@@ -57,6 +67,13 @@ export class Registration extends AggregateRoot {
       deletedAt: now,
       updatedAt: now,
     };
+    this.apply(
+      new RegistrationCancelledEvent({
+        aggregateId: this.id,
+        organizationId: this.organizationId,
+        occurrenceId: this.occurrenceId,
+      }),
+    );
   }
 
   reactivate(seatCount: number, now: Date): void {
