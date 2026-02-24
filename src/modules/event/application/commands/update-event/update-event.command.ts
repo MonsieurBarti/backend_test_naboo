@@ -112,15 +112,16 @@ export class UpdateEventHandler implements ICommandHandler<UpdateEventCommand> {
           const durationMs = differenceInMilliseconds(event.endDate, event.startDate);
 
           const newOccurrences = occurrenceDates.map((startDate) =>
-            Occurrence.create({
-              id: randomUUID(),
-              eventId: event.id,
-              organizationId: event.organizationId,
-              startDate,
-              endDate: addMilliseconds(startDate, durationMs),
-              createdAt: now,
-              updatedAt: now,
-            }),
+            Occurrence.createNew(
+              {
+                id: randomUUID(),
+                eventId: event.id,
+                organizationId: event.organizationId,
+                startDate,
+                endDate: addMilliseconds(startDate, durationMs),
+              },
+              this.dateProvider,
+            ),
           );
 
           await this.occurrenceRepo.saveMany(newOccurrences, session);

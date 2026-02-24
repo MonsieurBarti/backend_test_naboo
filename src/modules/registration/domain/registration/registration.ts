@@ -1,5 +1,6 @@
 import { AggregateRoot } from "@nestjs/cqrs";
-import { z } from "zod";
+import { IDateProvider } from "src/shared/date/date-provider";
+import { ZodError, z } from "zod";
 
 export const RegistrationPropsSchema = z.object({
   id: z.uuid(),
@@ -24,16 +25,29 @@ export class Registration extends AggregateRoot {
     super();
   }
 
-  static create(
-    props: Omit<RegistrationProps, "deletedAt" | "status">,
+  static createNew(
+    props: Omit<RegistrationProps, "deletedAt" | "status" | "createdAt" | "updatedAt">,
+    dateProvider: IDateProvider,
   ): Registration {
     return new Registration(
-      RegistrationPropsSchema.parse({ ...props, status: "active", deletedAt: undefined }),
+      RegistrationPropsSchema.parse({
+        ...props,
+        status: "active",
+        deletedAt: undefined,
+        createdAt: dateProvider.now(),
+        updatedAt: dateProvider.now(),
+      }),
     );
   }
 
-  static reconstitute(props: RegistrationProps): Registration {
-    return new Registration(RegistrationPropsSchema.parse(props));
+  static create(props: RegistrationProps): Registration {
+    try {
+      const validated = RegistrationPropsSchema.parse(props);
+      return new Registration(validated);
+    } catch (error) {
+      if (error instanceof ZodError) throw error;
+      throw error;
+    }
   }
 
   cancel(now: Date): void {
@@ -117,5 +131,9 @@ export class Registration extends AggregateRoot {
 
   get isDeleted(): boolean {
     return this.props.deletedAt !== undefined;
+  }
+
+  toJSON(): RegistrationProps {
+    return { ...this.props };
   }
 }

@@ -122,18 +122,19 @@ export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterFor
       occurrence.incrementRegisteredSeats(seatCount);
 
       // 8. Create new registration
-      const registration = Registration.create({
-        id: registrationId,
-        occurrenceId,
-        organizationId,
-        userId,
-        seatCount,
-        occurrenceStartDate: occurrence.startDate,
-        occurrenceEndDate: occurrence.endDate,
-        eventTitle: event.title,
-        createdAt: now,
-        updatedAt: now,
-      });
+      const registration = Registration.createNew(
+        {
+          id: registrationId,
+          occurrenceId,
+          organizationId,
+          userId,
+          seatCount,
+          occurrenceStartDate: occurrence.startDate,
+          occurrenceEndDate: occurrence.endDate,
+          eventTitle: event.title,
+        },
+        this.dateProvider,
+      );
 
       await this.registrationRepo.save(registration, session);
       await this.occurrenceRepo.save(occurrence, session);

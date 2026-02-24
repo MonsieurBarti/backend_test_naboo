@@ -57,7 +57,7 @@ export class EventBuilder {
   }
 
   build(): Event {
-    return Event.reconstitute({
+    return Event.create({
       id: this.id,
       organizationId: this.organizationId,
       title: this.title,

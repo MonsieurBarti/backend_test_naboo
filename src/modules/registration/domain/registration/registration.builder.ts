@@ -63,7 +63,7 @@ export class RegistrationBuilder {
   }
 
   build(): Registration {
-    return Registration.reconstitute({
+    return Registration.create({
       id: this.id,
       occurrenceId: this.occurrenceId,
       organizationId: this.organizationId,

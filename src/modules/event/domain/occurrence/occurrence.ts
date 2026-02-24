@@ -1,9 +1,10 @@
 import { AggregateRoot } from "@nestjs/cqrs";
-import { z } from "zod";
 import {
   OccurrenceCapacityExceededError,
   SeatDecrementBelowZeroError,
-} from "../errors/event-base.error";
+} from "src/modules/event/domain/errors/event-base.error";
+import { IDateProvider } from "src/shared/date/date-provider";
+import { ZodError, z } from "zod";
 
 export const OccurrencePropsSchema = z.object({
   id: z.uuid(),
@@ -27,14 +28,30 @@ export class Occurrence extends AggregateRoot {
     super();
   }
 
-  static create(
-    props: Omit<OccurrenceProps, "deletedAt" | "registeredSeats"> & { registeredSeats?: number },
+  static createNew(
+    props: Omit<OccurrenceProps, "deletedAt" | "registeredSeats" | "createdAt" | "updatedAt"> & {
+      registeredSeats?: number;
+    },
+    dateProvider: IDateProvider,
   ): Occurrence {
-    return new Occurrence(OccurrencePropsSchema.parse({ ...props, deletedAt: undefined }));
+    return new Occurrence(
+      OccurrencePropsSchema.parse({
+        ...props,
+        createdAt: dateProvider.now(),
+        updatedAt: dateProvider.now(),
+        deletedAt: undefined,
+      }),
+    );
   }
 
-  static reconstitute(props: OccurrenceProps): Occurrence {
-    return new Occurrence(OccurrencePropsSchema.parse(props));
+  static create(props: OccurrenceProps): Occurrence {
+    try {
+      const validated = OccurrencePropsSchema.parse(props);
+      return new Occurrence(validated);
+    } catch (error) {
+      if (error instanceof ZodError) throw error;
+      throw error;
+    }
   }
 
   incrementRegisteredSeats(count: number): void {
@@ -117,5 +134,9 @@ export class Occurrence extends AggregateRoot {
 
   get isDeleted(): boolean {
     return this.props.deletedAt !== undefined;
+  }
+
+  toJSON(): OccurrenceProps {
+    return { ...this.props };
   }
 }

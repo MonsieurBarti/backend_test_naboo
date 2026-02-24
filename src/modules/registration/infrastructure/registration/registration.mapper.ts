@@ -4,7 +4,7 @@ import type { RegistrationDocument } from "./registration.schema";
 
 export class RegistrationMapper implements EntityMapper<Registration, RegistrationDocument> {
   toDomain(record: RegistrationDocument): Registration {
-    return Registration.reconstitute({
+    return Registration.create({
       id: record._id,
       occurrenceId: record.occurrenceId,
       organizationId: record.organizationId,

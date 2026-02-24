@@ -63,7 +63,7 @@ export class OccurrenceBuilder {
   }
 
   build(): Occurrence {
-    return Occurrence.reconstitute({
+    return Occurrence.create({
       id: this.id,
       eventId: this.eventId,
       organizationId: this.organizationId,

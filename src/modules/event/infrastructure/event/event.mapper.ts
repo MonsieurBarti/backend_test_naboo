@@ -4,7 +4,7 @@ import type { EventDocument } from "./event.schema";
 
 export class EventMapper implements EntityMapper<Event, EventDocument> {
   toDomain(record: EventDocument): Event {
-    return Event.reconstitute({
+    return Event.create({
       id: record._id,
       organizationId: record.organizationId,
       title: record.title,

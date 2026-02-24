@@ -37,7 +37,7 @@ export class CreateOrganizationHandler implements ICommandHandler<CreateOrganiza
       throw new SlugAlreadyTakenError(slug, { correlationId });
     }
 
-    const org = Organization.create(name, slug, this.dateProvider.now());
+    const org = Organization.createNew(name, slug, this.dateProvider);
     await this.orgRepo.save(org);
   }
 }

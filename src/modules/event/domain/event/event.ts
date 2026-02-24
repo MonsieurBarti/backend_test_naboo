@@ -1,7 +1,8 @@
 import { AggregateRoot } from "@nestjs/cqrs";
-import { z } from "zod";
-import type { RecurrencePatternProps } from "./recurrence-pattern";
-import { recurrencePatternSchema } from "./recurrence-pattern";
+import type { RecurrencePatternProps } from "src/modules/event/domain/event/recurrence-pattern";
+import { recurrencePatternSchema } from "src/modules/event/domain/event/recurrence-pattern";
+import { IDateProvider } from "src/shared/date/date-provider";
+import { ZodError, z } from "zod";
 
 export const EventPropsSchema = z.object({
   id: z.uuid(),
@@ -25,12 +26,28 @@ export class Event extends AggregateRoot {
     super();
   }
 
-  static create(props: Omit<EventProps, "deletedAt">): Event {
-    return new Event(EventPropsSchema.parse({ ...props, deletedAt: undefined }));
+  static createNew(
+    props: Omit<EventProps, "deletedAt" | "createdAt" | "updatedAt">,
+    dateProvider: IDateProvider,
+  ): Event {
+    return new Event(
+      EventPropsSchema.parse({
+        ...props,
+        createdAt: dateProvider.now(),
+        updatedAt: dateProvider.now(),
+        deletedAt: undefined,
+      }),
+    );
   }
 
-  static reconstitute(props: EventProps): Event {
-    return new Event(EventPropsSchema.parse(props));
+  static create(props: EventProps): Event {
+    try {
+      const validated = EventPropsSchema.parse(props);
+      return new Event(validated);
+    } catch (error) {
+      if (error instanceof ZodError) throw error;
+      throw error;
+    }
   }
 
   softDelete(now: Date): void {
@@ -109,5 +126,9 @@ export class Event extends AggregateRoot {
 
   get isRecurring(): boolean {
     return this.props.recurrencePattern !== undefined;
+  }
+
+  toJSON(): EventProps {
+    return { ...this.props };
   }
 }

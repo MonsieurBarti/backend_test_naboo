@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { AggregateRoot } from "@nestjs/cqrs";
-import { z } from "zod";
+import { IDateProvider } from "src/shared/date/date-provider";
+import { ZodError, z } from "zod";
 
 export const OrganizationPropsSchema = z.object({
   id: z.uuid(),
@@ -16,13 +17,24 @@ export class Organization extends AggregateRoot {
     super();
   }
 
-  static create(name: string, slug: string, createdAt: Date): Organization {
-    const validated = OrganizationPropsSchema.parse({ id: randomUUID(), name, slug, createdAt });
+  static createNew(name: string, slug: string, dateProvider: IDateProvider): Organization {
+    const validated = OrganizationPropsSchema.parse({
+      id: randomUUID(),
+      name,
+      slug,
+      createdAt: dateProvider.now(),
+    });
     return new Organization(validated);
   }
 
-  static reconstitute(props: OrganizationProps): Organization {
-    return new Organization(OrganizationPropsSchema.parse(props));
+  static create(props: OrganizationProps): Organization {
+    try {
+      const validated = OrganizationPropsSchema.parse(props);
+      return new Organization(validated);
+    } catch (error) {
+      if (error instanceof ZodError) throw error;
+      throw error;
+    }
   }
 
   get id(): string {
@@ -39,5 +51,9 @@ export class Organization extends AggregateRoot {
 
   get createdAt(): Date {
     return this.props.createdAt;
+  }
+
+  toJSON(): OrganizationProps {
+    return { ...this.props };
   }
 }

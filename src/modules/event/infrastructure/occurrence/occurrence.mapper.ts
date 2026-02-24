@@ -4,7 +4,7 @@ import type { OccurrenceDocument } from "./occurrence.schema";
 
 export class OccurrenceMapper implements EntityMapper<Occurrence, OccurrenceDocument> {
   toDomain(record: OccurrenceDocument): Occurrence {
-    return Occurrence.reconstitute({
+    return Occurrence.create({
       id: record._id,
       eventId: record.eventId,
       organizationId: record.organizationId,

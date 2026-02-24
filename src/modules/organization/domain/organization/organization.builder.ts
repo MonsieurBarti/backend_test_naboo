@@ -24,7 +24,7 @@ export class OrganizationBuilder {
   }
 
   build(): Organization {
-    return Organization.reconstitute({
+    return Organization.create({
       id: this.id,
       name: this.name,
       slug: this.slug,

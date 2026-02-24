@@ -46,7 +46,6 @@ export class CreateEventHandler implements ICommandHandler<CreateEventCommand> {
 
   async execute(command: CreateEventCommand): Promise<void> {
     const { props } = command;
-    const now = this.dateProvider.now();
 
     // Validate recurrence pattern if provided
     let validatedPattern: RecurrencePatternProps | undefined;
@@ -62,19 +61,20 @@ export class CreateEventHandler implements ICommandHandler<CreateEventCommand> {
     }
 
     // Create event entity
-    const event = Event.create({
-      id: props.id,
-      organizationId: props.organizationId,
-      title: props.title,
-      description: props.description,
-      location: props.location,
-      startDate: props.startDate,
-      endDate: props.endDate,
-      maxCapacity: props.maxCapacity,
-      recurrencePattern: validatedPattern,
-      createdAt: now,
-      updatedAt: now,
-    });
+    const event = Event.createNew(
+      {
+        id: props.id,
+        organizationId: props.organizationId,
+        title: props.title,
+        description: props.description,
+        location: props.location,
+        startDate: props.startDate,
+        endDate: props.endDate,
+        maxCapacity: props.maxCapacity,
+        recurrencePattern: validatedPattern,
+      },
+      this.dateProvider,
+    );
 
     // If recurring, materialize occurrences and wrap in transaction
     if (validatedPattern !== undefined) {
@@ -82,15 +82,16 @@ export class CreateEventHandler implements ICommandHandler<CreateEventCommand> {
       const durationMs = differenceInMilliseconds(event.endDate, event.startDate);
 
       const occurrences = occurrenceDates.map((startDate) =>
-        Occurrence.create({
-          id: randomUUID(),
-          eventId: event.id,
-          organizationId: event.organizationId,
-          startDate,
-          endDate: addMilliseconds(startDate, durationMs),
-          createdAt: now,
-          updatedAt: now,
-        }),
+        Occurrence.createNew(
+          {
+            id: randomUUID(),
+            eventId: event.id,
+            organizationId: event.organizationId,
+            startDate,
+            endDate: addMilliseconds(startDate, durationMs),
+          },
+          this.dateProvider,
+        ),
       );
 
       await this.eventRepo.withTransaction(async (session) => {

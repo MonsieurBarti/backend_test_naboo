@@ -6,7 +6,7 @@ import { OrganizationDocument } from "./organization.schema";
 @Injectable()
 export class OrganizationMapper implements EntityMapper<Organization, OrganizationDocument> {
   toDomain(record: OrganizationDocument): Organization {
-    return Organization.reconstitute({
+    return Organization.create({
       id: record._id,
       name: record.name,
       slug: record.slug,
