@@ -166,7 +166,7 @@ export class RegistrationNotFoundErrorType {
   @Field()
   message!: string;
 
-  @Field()
+  @Field(() => ID)
   registrationId!: string;
 }
 

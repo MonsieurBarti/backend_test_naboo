@@ -89,6 +89,7 @@ export class CreateEventHandler implements ICommandHandler<CreateEventCommand> {
             organizationId: event.organizationId,
             startDate,
             endDate: addMilliseconds(startDate, durationMs),
+            maxCapacity: event.maxCapacity,
           },
           this.dateProvider,
         ),
