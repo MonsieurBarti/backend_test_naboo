@@ -1,98 +1,111 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Multi-Tenant Event Scheduling Platform
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS backend for multi-tenant event management with atomic capacity enforcement and conflict detection. Built with GraphQL (code-first), MongoDB (replica set for transactions), and Redis cache.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Prerequisites
 
-## Description
+- Node.js LTS (v22)
+- Docker and Docker Compose
+- pnpm
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Quick Start
 
-## Project setup
+**1. Install dependencies:**
 
 ```bash
-$ pnpm install
+pnpm install
 ```
 
-## Compile and run the project
+**2. Start infrastructure (MongoDB replica set + Redis):**
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+docker compose up -d
 ```
 
-## Run tests
+**3. Copy environment file:**
 
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+cp .env.example .env
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**4. Start the application:**
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+**5. Open GraphQL playground:**
 
-## Resources
+```
+http://localhost:3000/graphql
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+**6. (Optional) Seed sample data:**
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+pnpm seed
+```
 
-## Support
+> Every GraphQL request requires an `x-tenant-id` header with the organization UUID. The seed script logs the created organization UUIDs to the console. In the GraphQL playground, set this header via the "Headers" panel.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Environment Variables
 
-## Stay in touch
+| Variable      | Required | Default                                                     | Description                          |
+| ------------- | -------- | ----------------------------------------------------------- | ------------------------------------ |
+| `MONGODB_URI` | Yes      | `mongodb://localhost:27017/event-scheduler?replicaSet=rs0`  | MongoDB connection string (replica set required for transactions) |
+| `REDIS_URL`   | No       | `redis://localhost:6379`                                    | Redis connection URL                 |
+| `PORT`        | No       | `3000`                                                      | HTTP port the app listens on         |
+| `LOG_LEVEL`   | No       | `info`                                                      | Pino log level (trace/debug/info/warn/error) |
+| `NODE_ENV`    | No       | `development`                                               | Node environment                     |
+| `IS_LOCAL`    | No       | `false`                                                     | Enables pretty-print logging locally |
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Running Tests
 
-## License
+| Command          | Description                                                     |
+| ---------------- | --------------------------------------------------------------- |
+| `pnpm test`      | Unit tests using in-memory repositories (~86 tests, ~5 seconds) |
+| `pnpm test:int`  | Integration tests against real MongoDB (requires Docker Compose running) |
+| `pnpm test:e2e`  | End-to-end GraphQL tests (requires Docker Compose running)      |
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Technical Choices
+
+**NestJS + Fastify + Mercurius**
+NestJS provides the module system and dependency injection. Fastify is used over Express for throughput and lower overhead. Mercurius is the only production-ready, Fastify-native GraphQL driver — Apollo Server does not natively integrate with Fastify's request lifecycle without an adapter layer.
+
+**MongoDB with replica set**
+MongoDB transactions (multi-document atomicity) require a replica set. The platform's two core invariants — capacity enforcement and conflict detection — both execute inside `session.withTransaction()` to prevent race conditions. A single-node MongoDB cannot provide the `readConcern: snapshot` isolation these transactions depend on.
+
+**Redis with ioredis**
+Cache-aside pattern with tenant-scoped keys (`{tenantId}:{resource}:{hash}`). Read-through caching on all list queries. Event-driven cache invalidation via domain events — when an event is updated or deleted, the corresponding occurrence and registration caches are invalidated immediately. TTL-based expiry provides a safety net.
+
+**CQRS + hexagonal architecture**
+Commands never return data; queries bypass the domain layer and read directly from the database via Prisma-style read models. Four strict layers (domain, application, infrastructure, presentation) prevent business logic from leaking into transport or persistence concerns. See [ARCHITECTURE.md](ARCHITECTURE.md) for the full layer diagram and dependency rules.
+
+**Separate collections multi-tenancy**
+Each organization gets physically isolated MongoDB collections: `{tenantSlug}_events`, `{tenantSlug}_occurrences`. A `TenantConnectionRegistry` resolves the correct Mongoose model at query time using a single shared connection — no per-tenant connections, no cross-tenant data leakage from missing filter clauses.
+
+**Zod for validation**
+Single schema source of truth for both runtime validation and TypeScript types (`z.infer<typeof Schema>`). No `class-validator` or `class-transformer`. Request DTOs are validated at the presentation boundary before dispatch to command/query handlers.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed schema design, alternatives considered, and trade-offs.
+
+## Project Structure
+
+```
+src/
+  modules/
+    organization/   # Tenant identity (create org, resolve slug for TenantGuard)
+    event/          # Events + occurrences + recurrence pattern materialization
+    registration/   # Capacity enforcement + conflict detection
+  shared/           # Base classes, CLS context, cache service, logging, CQRS wrappers
+  config/           # Environment validation (Zod schema)
+```
+
+## Future Work
+
+- **Redis SCAN instead of KEYS** — the current `delPattern` implementation uses `KEYS` which is O(n) on large keyspaces and blocks the Redis event loop. Production deployments should use `SCAN` with cursor iteration.
+- **Testcontainers for CI** — integration and e2e tests currently require a pre-running Docker Compose stack. Testcontainers would make them self-contained and CI-friendly.
+- **Occurrence re-expansion job** — recurring event occurrences are materialized at create/update time up to `MAX_OCCURRENCES`. A scheduled job should expand the occurrence horizon as the event window moves forward.
+- **Authentication and authorization** — `userId` and `organizationId` are currently caller-provided with no authentication layer. A JWT-based auth layer with org membership verification is required before production use.
+- **Rate limiting** — no throttling is currently applied to GraphQL mutations. NestJS `ThrottlerModule` should be added to protect capacity-sensitive operations.
+- **DataLoader for N+1 prevention** — nested GraphQL resolvers (e.g., `event.occurrences`) currently issue per-event queries. DataLoader batching would reduce round-trips significantly under load.
