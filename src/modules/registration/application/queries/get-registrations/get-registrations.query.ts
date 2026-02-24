@@ -1,6 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
+import { ClsService } from "nestjs-cls";
 import { TypedQuery } from "../../../../../shared/cqrs/typed-query";
+import { CacheService } from "../../../../../shared/redis/cache.service";
 import type { IRegistrationRepository } from "../../../domain/registration/registration.repository";
 import { REGISTRATION_REPOSITORY } from "../../../registration.tokens";
 
@@ -47,12 +49,27 @@ export class GetRegistrationsHandler
   constructor(
     @Inject(REGISTRATION_REPOSITORY)
     private readonly registrationRepo: IRegistrationRepository,
+    private readonly cls: ClsService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async execute(query: GetRegistrationsQuery): Promise<RegistrationPaginatedResult> {
     const { userId, organizationId, includeCancelled, first, after } = query.props;
 
-    const result = await this.registrationRepo.findByUserInOrganization({
+    const tenantId = this.cls.get<string>("tenantId");
+    const stableHash = JSON.stringify({
+      ic: includeCancelled,
+      f: first,
+      a: after,
+    });
+    const cacheKey = `${tenantId}:registrations:list:${userId}:${stableHash}`;
+
+    const cached = await this.cacheService.get<RegistrationPaginatedResult>(cacheKey);
+    if (cached !== null) {
+      return cached;
+    }
+
+    const repoResult = await this.registrationRepo.findByUserInOrganization({
       userId,
       organizationId,
       includeCancelled,
@@ -60,7 +77,7 @@ export class GetRegistrationsHandler
       after,
     });
 
-    const items: RegistrationReadModel[] = result.items.map((reg) => ({
+    const items: RegistrationReadModel[] = repoResult.items.map((reg) => ({
       id: reg.id,
       occurrenceId: reg.occurrenceId,
       organizationId: reg.organizationId,
@@ -74,6 +91,12 @@ export class GetRegistrationsHandler
       updatedAt: reg.updatedAt,
     }));
 
-    return { items, hasNextPage: result.hasNextPage, totalCount: result.totalCount };
+    const result: RegistrationPaginatedResult = {
+      items,
+      hasNextPage: repoResult.hasNextPage,
+      totalCount: repoResult.totalCount,
+    };
+    await this.cacheService.set(cacheKey, result, 30);
+    return result;
   }
 }

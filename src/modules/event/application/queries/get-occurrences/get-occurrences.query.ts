@@ -4,6 +4,7 @@ import { ClsService } from "nestjs-cls";
 import { TypedQuery } from "../../../../../shared/cqrs/typed-query";
 import { decodeCursor } from "../../../../../shared/graphql/relay-pagination";
 import { TenantConnectionRegistry } from "../../../../../shared/mongoose/tenant-connection-registry";
+import { CacheService } from "../../../../../shared/redis/cache.service";
 import {
   OccurrenceDocument,
   OccurrenceSchema,
@@ -51,6 +52,7 @@ export class GetOccurrencesHandler
   constructor(
     private readonly registry: TenantConnectionRegistry,
     private readonly cls: ClsService,
+    private readonly cacheService: CacheService,
   ) {}
 
   private getModel() {
@@ -61,6 +63,20 @@ export class GetOccurrencesHandler
   async execute(query: GetOccurrencesQuery): Promise<GetOccurrencesQueryResult> {
     const { props } = query;
     const { eventId, startDate, endDate, first, after } = props;
+
+    const tenantId = this.cls.get<string>("tenantId");
+    const stableHash = JSON.stringify({
+      s: startDate?.toISOString(),
+      e: endDate?.toISOString(),
+      f: first,
+      a: after,
+    });
+    const cacheKey = `${tenantId}:occurrences:list:${eventId}:${stableHash}`;
+
+    const cached = await this.cacheService.get<GetOccurrencesQueryResult>(cacheKey);
+    if (cached !== null) {
+      return cached;
+    }
 
     const dateFilters: Record<string, unknown> = {};
     if (startDate !== undefined) {
@@ -109,6 +125,8 @@ export class GetOccurrencesHandler
       updatedAt: doc.updatedAt,
     }));
 
-    return { items, hasNextPage, totalCount };
+    const result: GetOccurrencesQueryResult = { items, hasNextPage, totalCount };
+    await this.cacheService.set(cacheKey, result, 120);
+    return result;
   }
 }
