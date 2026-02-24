@@ -3,6 +3,8 @@ import type { CursorPaginatedResult } from "../event/event.repository";
 import type { Occurrence } from "./occurrence";
 
 export abstract class IOccurrenceRepository {
+  abstract findById(id: string, session?: ClientSession): Promise<Occurrence | null>;
+  abstract save(occurrence: Occurrence, session?: ClientSession): Promise<void>;
   abstract saveMany(occurrences: Occurrence[], session?: ClientSession): Promise<void>;
   abstract findByEvent(
     eventId: string,

@@ -4,6 +4,7 @@ import type { Registration } from "./registration";
 
 export abstract class IRegistrationRepository {
   abstract save(registration: Registration, session?: ClientSession): Promise<void>;
+  abstract findById(id: string, session?: ClientSession): Promise<Registration | null>;
   abstract findByUserAndOccurrence(
     userId: string,
     occurrenceId: string,

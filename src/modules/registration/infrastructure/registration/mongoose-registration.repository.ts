@@ -37,6 +37,15 @@ export class MongooseRegistrationRepository implements IRegistrationRepository {
     this.publishEvents(entity);
   }
 
+  async findById(id: string, session?: ClientSession): Promise<Registration | null> {
+    const doc = await this.model
+      .findById(id)
+      .session(session ?? null)
+      .lean<RegistrationDocument>()
+      .exec();
+    return doc ? this.mapper.toDomain(doc) : null;
+  }
+
   async findByUserAndOccurrence(
     userId: string,
     occurrenceId: string,

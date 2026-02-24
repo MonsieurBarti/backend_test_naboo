@@ -30,6 +30,22 @@ export class MongooseOccurrenceRepository implements IOccurrenceRepository {
     return this.registry.getModel(tenantSlug, "occurrences", OccurrenceSchema);
   }
 
+  async findById(id: string, session?: ClientSession): Promise<Occurrence | null> {
+    const doc = await this.getModel()
+      .findById(id)
+      .session(session ?? null)
+      .lean<OccurrenceDocument>()
+      .exec();
+    if (!doc) return null;
+    return this.mapper.toDomain(doc);
+  }
+
+  async save(occurrence: Occurrence, session?: ClientSession): Promise<void> {
+    const doc = this.mapper.toPersistence(occurrence);
+    await this.getModel().findByIdAndUpdate(doc._id, { $set: doc }, { upsert: true, session });
+    this.publishEvents(occurrence);
+  }
+
   async saveMany(occurrences: Occurrence[], session?: ClientSession): Promise<void> {
     const docs = occurrences.map((occ) => this.mapper.toPersistence(occ));
     await this.getModel().insertMany(docs, { session });

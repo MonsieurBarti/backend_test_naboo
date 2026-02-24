@@ -23,12 +23,35 @@ export class Occurrence extends AggregateRoot {
     super();
   }
 
-  static create(props: Omit<OccurrenceProps, "deletedAt" | "registeredSeats"> & { registeredSeats?: number }): Occurrence {
+  static create(
+    props: Omit<OccurrenceProps, "deletedAt" | "registeredSeats"> & { registeredSeats?: number },
+  ): Occurrence {
     return new Occurrence(OccurrencePropsSchema.parse({ ...props, deletedAt: undefined }));
   }
 
   static reconstitute(props: OccurrenceProps): Occurrence {
     return new Occurrence(OccurrencePropsSchema.parse(props));
+  }
+
+  incrementRegisteredSeats(count: number): void {
+    if (
+      this.props.maxCapacity !== undefined &&
+      this.props.registeredSeats + count > this.props.maxCapacity
+    ) {
+      throw new Error(
+        `Capacity exceeded: registeredSeats (${this.props.registeredSeats}) + count (${count}) > maxCapacity (${this.props.maxCapacity})`,
+      );
+    }
+    this.props = { ...this.props, registeredSeats: this.props.registeredSeats + count };
+  }
+
+  decrementRegisteredSeats(count: number): void {
+    if (this.props.registeredSeats - count < 0) {
+      throw new Error(
+        `Cannot decrement below zero: registeredSeats (${this.props.registeredSeats}) - count (${count}) < 0`,
+      );
+    }
+    this.props = { ...this.props, registeredSeats: this.props.registeredSeats - count };
   }
 
   softDelete(now: Date): void {
