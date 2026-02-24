@@ -37,7 +37,9 @@ export default defineConfig({
         test: {
           name: "integration",
           include: ["src/**/*.integration.spec.ts"],
-          hookTimeout: 60000,
+          globalSetup: ["src/shared/testing/testcontainers.global-setup.ts"],
+          setupFiles: ["src/shared/testing/testcontainers.setup.ts"],
+          hookTimeout: 120000,
           testTimeout: 30000,
         },
       },
@@ -46,12 +48,12 @@ export default defineConfig({
         test: {
           name: "e2e",
           include: ["src/**/*.e2e.spec.ts"],
-          hookTimeout: 60000,
+          globalSetup: ["src/shared/testing/testcontainers.global-setup.ts"],
+          setupFiles: ["src/shared/testing/testcontainers.setup.ts"],
+          hookTimeout: 120000,
           testTimeout: 30000,
           env: {
             NODE_ENV: "test",
-            MONGODB_URI: "mongodb://localhost:27017/test-e2e?replicaSet=rs0",
-            REDIS_URL: "redis://localhost:6379",
             LOG_LEVEL: "error",
             IS_LOCAL: "false",
             PORT: "0",

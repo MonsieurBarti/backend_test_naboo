@@ -5,11 +5,11 @@ import { DateProviderModule } from "src/shared/date/date-provider.module";
 import { TypedCommandBus } from "../../shared/cqrs/typed-command-bus";
 import { TypedQueryBus } from "../../shared/cqrs/typed-query-bus";
 import { EventModule } from "../event/event.module";
-import { CancelRegistrationHandler } from "./application/commands/cancel-registration/cancel-registration.command";
-import { RegisterForOccurrenceHandler } from "./application/commands/register-for-occurrence/register-for-occurrence.command";
-import { InvalidateCacheWhenRegistrationCancelledHandler } from "./application/event-handlers/invalidate-cache-when-registration-cancelled.event-handler";
-import { InvalidateCacheWhenRegistrationCreatedHandler } from "./application/event-handlers/invalidate-cache-when-registration-created.event-handler";
-import { GetRegistrationsHandler } from "./application/queries/get-registrations/get-registrations.query";
+import {
+  commandHandlers,
+  eventHandlers,
+  queryHandlers,
+} from "./application/registration.application.module";
 import { MongooseRegistrationRepository } from "./infrastructure/registration/mongoose-registration.repository";
 import { RegistrationMapper } from "./infrastructure/registration/registration.mapper";
 import { RegistrationSchema } from "./infrastructure/registration/registration.schema";
@@ -24,14 +24,10 @@ import { REGISTRATION_TOKENS } from "./registration.tokens";
     DateProviderModule,
   ],
   providers: [
-    // Command handlers
-    RegisterForOccurrenceHandler,
-    CancelRegistrationHandler,
-    // Query handlers
-    GetRegistrationsHandler,
-    // Cache invalidation event handlers
-    InvalidateCacheWhenRegistrationCreatedHandler,
-    InvalidateCacheWhenRegistrationCancelledHandler,
+    // Command, query, and event handlers (from application barrel)
+    ...commandHandlers,
+    ...queryHandlers,
+    ...eventHandlers,
     // Resolver
     RegistrationResolver,
     // Mappers

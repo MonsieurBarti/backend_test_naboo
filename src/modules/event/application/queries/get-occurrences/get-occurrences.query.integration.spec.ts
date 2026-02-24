@@ -19,7 +19,8 @@ import type { OccurrenceDocument } from "../../../infrastructure/occurrence/occu
 import { OccurrenceSchema } from "../../../infrastructure/occurrence/occurrence.schema";
 import { GetOccurrencesHandler, GetOccurrencesQuery } from "./get-occurrences.query";
 
-const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017/test?replicaSet=rs0";
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) throw new Error("MONGODB_URI not set — did testcontainers globalSetup run?");
 
 // Stub CacheService that always misses
 class StubCacheService {
@@ -56,7 +57,7 @@ describe("GetOccurrencesHandler (integration)", () => {
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        MongooseModule.forRoot(MONGODB_URI, { serverSelectionTimeoutMS: 5000 }),
+        MongooseModule.forRoot(mongoUri, { serverSelectionTimeoutMS: 5000 }),
         TestLoggerModule,
         CqrsModule,
         ClsModule.forRoot({ global: true }),

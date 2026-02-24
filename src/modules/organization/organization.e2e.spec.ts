@@ -22,7 +22,7 @@ describe("Organization (e2e)", () => {
   });
 
   afterAll(async () => {
-    await testApp.app.close();
+    await testApp?.app?.close();
   });
 
   it("should create an organization via GraphQL mutation", async () => {

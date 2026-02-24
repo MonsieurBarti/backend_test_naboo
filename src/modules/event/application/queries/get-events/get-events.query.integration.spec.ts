@@ -19,7 +19,8 @@ import type { EventDocument } from "../../../infrastructure/event/event.schema";
 import { EventSchema } from "../../../infrastructure/event/event.schema";
 import { GetEventsHandler, GetEventsQuery } from "./get-events.query";
 
-const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017/test?replicaSet=rs0";
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) throw new Error("MONGODB_URI not set — did testcontainers globalSetup run?");
 
 // Stub CacheService that always misses (forces DB queries)
 class StubCacheService {
@@ -56,7 +57,7 @@ describe("GetEventsHandler (integration)", () => {
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        MongooseModule.forRoot(MONGODB_URI, { serverSelectionTimeoutMS: 5000 }),
+        MongooseModule.forRoot(mongoUri, { serverSelectionTimeoutMS: 5000 }),
         TestLoggerModule,
         CqrsModule,
         ClsModule.forRoot({ global: true }),
