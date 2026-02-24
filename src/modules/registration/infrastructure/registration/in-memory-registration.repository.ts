@@ -18,7 +18,7 @@ export class InMemoryRegistrationRepository
     // no-op in test double
   }
 
-  async findById(id: string, _session?: ClientSession): Promise<Registration | null> {
+  override async findById(id: string, _session?: ClientSession): Promise<Registration | null> {
     return this.store.get(id) ?? null;
   }
 

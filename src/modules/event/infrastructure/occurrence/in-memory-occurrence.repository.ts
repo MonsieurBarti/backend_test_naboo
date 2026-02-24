@@ -18,11 +18,11 @@ export class InMemoryOccurrenceRepository
     // no-op in test double
   }
 
-  async findById(id: string, _session?: ClientSession): Promise<Occurrence | null> {
+  override async findById(id: string, _session?: ClientSession): Promise<Occurrence | null> {
     return this.store.get(id) ?? null;
   }
 
-  async save(occurrence: Occurrence, _session?: ClientSession): Promise<void> {
+  override async save(occurrence: Occurrence, _session?: ClientSession): Promise<void> {
     this.store.set(occurrence.id, occurrence);
   }
 
