@@ -1,10 +1,8 @@
 import { Module } from "@nestjs/common";
 import { CqrsModule } from "@nestjs/cqrs";
-import { DateProviderModule } from "src/shared/date/date-provider.module";
 import { TypedCommandBus } from "../../shared/cqrs/typed-command-bus";
 import { TypedQueryBus } from "../../shared/cqrs/typed-query-bus";
-import { IDateProvider } from "../../shared/date/date-provider";
-import { DateProvider } from "../../shared/date/date-provider.impl";
+import { DateProviderModule } from "../../shared/date/date-provider.module";
 import {
   commandHandlers,
   eventHandlers,
@@ -32,8 +30,6 @@ import { EventResolver } from "./presentation/event.resolver";
     // Typed buses
     TypedCommandBus,
     TypedQueryBus,
-    // Date provider
-    { provide: IDateProvider, useClass: DateProvider },
     // Repository tokens (used by command handlers only)
     { provide: EVENT_TOKENS.EVENT_REPOSITORY, useClass: MongooseEventRepository },
     { provide: EVENT_TOKENS.OCCURRENCE_REPOSITORY, useClass: MongooseOccurrenceRepository },

@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
 import { CqrsModule } from "@nestjs/cqrs";
 import { MongooseModule } from "@nestjs/mongoose";
-import { DateProviderModule } from "src/shared/date/date-provider.module";
 import { TypedCommandBus } from "../../shared/cqrs/typed-command-bus";
 import { TypedQueryBus } from "../../shared/cqrs/typed-query-bus";
+import { DateProviderModule } from "../../shared/date/date-provider.module";
 import { commandHandlers, queryHandlers } from "./application/organization.application.module";
 import { MongooseOrganizationRepository } from "./infrastructure/organization/mongoose-organization.repository";
 import { OrganizationMapper } from "./infrastructure/organization/organization.mapper";
