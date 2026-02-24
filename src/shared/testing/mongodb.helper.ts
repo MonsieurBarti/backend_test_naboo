@@ -9,6 +9,9 @@ export async function truncateCollections(
   connection: Connection,
   collectionNames: string[],
 ): Promise<void> {
+  if (!connection) {
+    throw new Error("truncateCollections called with undefined connection — did beforeAll fail?");
+  }
   await Promise.all(
     collectionNames.map(async (name) => {
       try {

@@ -56,7 +56,7 @@ describe("GetOccurrencesHandler (integration)", () => {
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        MongooseModule.forRoot(MONGODB_URI),
+        MongooseModule.forRoot(MONGODB_URI, { serverSelectionTimeoutMS: 5000 }),
         TestLoggerModule,
         CqrsModule,
         ClsModule.forRoot({ global: true }),
@@ -84,12 +84,18 @@ describe("GetOccurrencesHandler (integration)", () => {
   });
 
   beforeEach(async () => {
-    await truncateCollections(connection, [`${tenantSlug}_occurrences`]);
+    if (connection) {
+      await truncateCollections(connection, [`${tenantSlug}_occurrences`]);
+    }
   });
 
   afterAll(async () => {
-    await truncateCollections(connection, [`${tenantSlug}_occurrences`]);
-    await module.close();
+    if (connection) {
+      await truncateCollections(connection, [`${tenantSlug}_occurrences`]);
+    }
+    if (module) {
+      await module.close();
+    }
   });
 
   it("should return occurrences for specific event", async () => {

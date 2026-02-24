@@ -56,7 +56,7 @@ describe("GetEventsHandler (integration)", () => {
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        MongooseModule.forRoot(MONGODB_URI),
+        MongooseModule.forRoot(MONGODB_URI, { serverSelectionTimeoutMS: 5000 }),
         TestLoggerModule,
         CqrsModule,
         ClsModule.forRoot({ global: true }),
@@ -80,12 +80,18 @@ describe("GetEventsHandler (integration)", () => {
   });
 
   beforeEach(async () => {
-    await truncateCollections(connection, [`${tenantSlug}_events`]);
+    if (connection) {
+      await truncateCollections(connection, [`${tenantSlug}_events`]);
+    }
   });
 
   afterAll(async () => {
-    await truncateCollections(connection, [`${tenantSlug}_events`]);
-    await module.close();
+    if (connection) {
+      await truncateCollections(connection, [`${tenantSlug}_events`]);
+    }
+    if (module) {
+      await module.close();
+    }
   });
 
   it("should return events for tenant", async () => {

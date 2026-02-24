@@ -28,7 +28,7 @@ describe("GetOrganizationHandler (integration)", () => {
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        MongooseModule.forRoot(MONGODB_URI),
+        MongooseModule.forRoot(MONGODB_URI, { serverSelectionTimeoutMS: 5000 }),
         MongooseModule.forFeature([{ name: "Organization", schema: OrganizationSchema }]),
         TestLoggerModule,
         CqrsModule,
@@ -56,8 +56,12 @@ describe("GetOrganizationHandler (integration)", () => {
   });
 
   afterAll(async () => {
-    await orgModel.deleteMany({ _id: { $in: [org1Id, org2Id] } });
-    await module.close();
+    if (orgModel) {
+      await orgModel.deleteMany({ _id: { $in: [org1Id, org2Id] } });
+    }
+    if (module) {
+      await module.close();
+    }
   });
 
   it("should return organization by ID", async () => {

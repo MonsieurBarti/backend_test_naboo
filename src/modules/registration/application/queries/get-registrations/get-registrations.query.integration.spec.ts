@@ -50,7 +50,7 @@ describe("GetRegistrationsHandler (integration)", () => {
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        MongooseModule.forRoot(MONGODB_URI),
+        MongooseModule.forRoot(MONGODB_URI, { serverSelectionTimeoutMS: 5000 }),
         MongooseModule.forFeature([{ name: "Registration", schema: RegistrationSchema }]),
         TestLoggerModule,
         CqrsModule,
@@ -75,8 +75,12 @@ describe("GetRegistrationsHandler (integration)", () => {
   });
 
   afterAll(async () => {
-    await registrationModel.deleteMany({ organizationId: orgId });
-    await module.close();
+    if (registrationModel) {
+      await registrationModel.deleteMany({ organizationId: orgId });
+    }
+    if (module) {
+      await module.close();
+    }
   });
 
   const makeRegistration = (
