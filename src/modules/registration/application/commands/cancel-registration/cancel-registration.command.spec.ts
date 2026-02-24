@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { OccurrenceBuilder } from "src/modules/event/domain/occurrence/occurrence.builder";
+import { InMemoryOccurrenceRepository } from "src/modules/event/infrastructure/occurrence/in-memory-occurrence.repository";
+import { FakeDateProvider } from "src/shared/testing/fake-date-provider";
 import { beforeEach, describe, expect, it } from "vitest";
-import { OccurrenceBuilder } from "../../../../../modules/event/domain/occurrence/occurrence.builder";
-import { InMemoryOccurrenceRepository } from "../../../../../modules/event/infrastructure/occurrence/in-memory-occurrence.repository";
 import { RegistrationNotFoundError } from "../../../domain/errors/registration-base.error";
 import { RegistrationBuilder } from "../../../domain/registration/registration.builder";
 import { InMemoryRegistrationRepository } from "../../../infrastructure/registration/in-memory-registration.repository";
@@ -10,20 +11,10 @@ import {
   CancelRegistrationHandler,
 } from "./cancel-registration.command";
 
-class StubDateProvider {
-  private _now: Date;
-  constructor(now: Date) {
-    this._now = now;
-  }
-  now(): Date {
-    return this._now;
-  }
-}
-
 describe("CancelRegistration", () => {
   let registrationRepo: InMemoryRegistrationRepository;
   let occurrenceRepo: InMemoryOccurrenceRepository;
-  let dateProvider: StubDateProvider;
+  let dateProvider: FakeDateProvider;
   let handler: CancelRegistrationHandler;
 
   const NOW = new Date("2026-02-24T10:00:00Z");
@@ -31,12 +22,8 @@ describe("CancelRegistration", () => {
   beforeEach(() => {
     registrationRepo = new InMemoryRegistrationRepository();
     occurrenceRepo = new InMemoryOccurrenceRepository();
-    dateProvider = new StubDateProvider(NOW);
-    handler = new CancelRegistrationHandler(
-      registrationRepo,
-      occurrenceRepo,
-      dateProvider as unknown as import("../../../../../shared/date/date-provider").IDateProvider,
-    );
+    dateProvider = new FakeDateProvider(NOW);
+    handler = new CancelRegistrationHandler(registrationRepo, occurrenceRepo, dateProvider);
   });
 
   it("should fully cancel an active registration and decrement registeredSeats", async () => {

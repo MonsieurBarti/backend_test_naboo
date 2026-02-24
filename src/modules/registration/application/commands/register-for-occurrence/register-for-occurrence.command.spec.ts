@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
+import { EventBuilder } from "src/modules/event/domain/event/event.builder";
+import { OccurrenceBuilder } from "src/modules/event/domain/occurrence/occurrence.builder";
+import { InMemoryEventRepository } from "src/modules/event/infrastructure/event/in-memory-event.repository";
+import { InMemoryOccurrenceRepository } from "src/modules/event/infrastructure/occurrence/in-memory-occurrence.repository";
+import { FakeDateProvider } from "src/shared/testing/fake-date-provider";
 import { beforeEach, describe, expect, it } from "vitest";
-import { EventBuilder } from "../../../../../modules/event/domain/event/event.builder";
-import { OccurrenceBuilder } from "../../../../../modules/event/domain/occurrence/occurrence.builder";
-import { InMemoryEventRepository } from "../../../../../modules/event/infrastructure/event/in-memory-event.repository";
-import { InMemoryOccurrenceRepository } from "../../../../../modules/event/infrastructure/occurrence/in-memory-occurrence.repository";
 import {
   AlreadyRegisteredError,
   CapacityExceededError,
@@ -19,21 +20,11 @@ import {
   RegisterForOccurrenceHandler,
 } from "./register-for-occurrence.command";
 
-class StubDateProvider {
-  private _now: Date;
-  constructor(now: Date) {
-    this._now = now;
-  }
-  now(): Date {
-    return this._now;
-  }
-}
-
 describe("RegisterForOccurrence", () => {
   let registrationRepo: InMemoryRegistrationRepository;
   let occurrenceRepo: InMemoryOccurrenceRepository;
   let eventRepo: InMemoryEventRepository;
-  let dateProvider: StubDateProvider;
+  let dateProvider: FakeDateProvider;
   let handler: RegisterForOccurrenceHandler;
 
   const NOW = new Date("2026-02-24T10:00:00Z");
@@ -42,12 +33,12 @@ describe("RegisterForOccurrence", () => {
     registrationRepo = new InMemoryRegistrationRepository();
     occurrenceRepo = new InMemoryOccurrenceRepository();
     eventRepo = new InMemoryEventRepository();
-    dateProvider = new StubDateProvider(NOW);
+    dateProvider = new FakeDateProvider(NOW);
     handler = new RegisterForOccurrenceHandler(
       registrationRepo,
       occurrenceRepo,
       eventRepo,
-      dateProvider as unknown as import("../../../../../shared/date/date-provider").IDateProvider,
+      dateProvider,
     );
   });
 
