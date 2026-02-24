@@ -6,6 +6,8 @@ import { TypedQueryBus } from "../../shared/cqrs/typed-query-bus";
 import { EventModule } from "../event/event.module";
 import { CancelRegistrationHandler } from "./application/commands/cancel-registration/cancel-registration.command";
 import { RegisterForOccurrenceHandler } from "./application/commands/register-for-occurrence/register-for-occurrence.command";
+import { InvalidateCacheWhenRegistrationCancelledHandler } from "./application/event-handlers/invalidate-cache-when-registration-cancelled.event-handler";
+import { InvalidateCacheWhenRegistrationCreatedHandler } from "./application/event-handlers/invalidate-cache-when-registration-created.event-handler";
 import { GetRegistrationsHandler } from "./application/queries/get-registrations/get-registrations.query";
 import { MongooseRegistrationRepository } from "./infrastructure/registration/mongoose-registration.repository";
 import { RegistrationMapper } from "./infrastructure/registration/registration.mapper";
@@ -25,6 +27,9 @@ import { REGISTRATION_REPOSITORY } from "./registration.tokens";
     CancelRegistrationHandler,
     // Query handlers
     GetRegistrationsHandler,
+    // Cache invalidation event handlers
+    InvalidateCacheWhenRegistrationCreatedHandler,
+    InvalidateCacheWhenRegistrationCancelledHandler,
     // Resolver
     RegistrationResolver,
     // Mappers
