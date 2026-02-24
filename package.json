@@ -21,7 +21,8 @@
     "test:e2e": "vitest run --project e2e",
     "test:watch": "vitest",
     "test:watch:unit": "vitest --project unit",
-    "test:cov": "vitest run --coverage"
+    "test:cov": "vitest run --coverage",
+    "verify:transaction": "npx tsx scripts/verify-transaction.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
