@@ -1,5 +1,5 @@
 import { AggregateRoot, EventBus } from "@nestjs/cqrs";
-import { ClientSession, Model, UpdateQuery } from "mongoose";
+import { ClientSession, Model } from "mongoose";
 
 /**
  * Maps between a domain aggregate and its persistence representation.
@@ -20,7 +20,10 @@ export interface EntityMapper<Entity, DbRecord> {
  * delete() MUST pass the provided session argument. Omitting session means the operation
  * runs outside the transaction and will NOT be rolled back on failure.
  */
-export abstract class MongooseRepositoryBase<TAggregate extends AggregateRoot, TDocument> {
+export abstract class MongooseRepositoryBase<
+  TAggregate extends AggregateRoot,
+  TDocument extends { _id: unknown },
+> {
   protected abstract readonly mapper: EntityMapper<TAggregate, TDocument>;
 
   constructor(
@@ -30,23 +33,27 @@ export abstract class MongooseRepositoryBase<TAggregate extends AggregateRoot, T
 
   async save(entity: TAggregate, session?: ClientSession): Promise<void> {
     const doc = this.mapper.toPersistence(entity);
-    const id = (doc as Record<string, unknown>)["_id"];
-    await this.model.findOneAndUpdate({ _id: id }, doc as UpdateQuery<TDocument>, {
-      upsert: true,
-      new: true,
-      session,
-    });
+    const id = doc._id;
+    await this.model.findOneAndUpdate(
+      { _id: id },
+      { $set: doc },
+      {
+        upsert: true,
+        new: true,
+        session,
+      },
+    );
     this.publishEvents(entity);
   }
 
   async findById(id: string, session?: ClientSession): Promise<TAggregate | null> {
-    const doc = await this.model.findById(id, null, { session }).lean().exec();
-    return doc ? this.mapper.toDomain(doc as TDocument) : null;
+    const doc = await this.model.findById(id, null, { session }).lean<TDocument>().exec();
+    return doc ? this.mapper.toDomain(doc) : null;
   }
 
   async delete(entity: TAggregate, session?: ClientSession): Promise<void> {
     const doc = this.mapper.toPersistence(entity);
-    const id = (doc as Record<string, unknown>)["_id"];
+    const id = doc._id;
     await this.model.findByIdAndDelete(id, { session });
     this.publishEvents(entity);
   }
