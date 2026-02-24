@@ -15,9 +15,10 @@ async function run(): Promise<void> {
   const session = await mongoose.connection.startSession();
   try {
     await session.withTransaction(async () => {
-      const doc = await TxTestModel.create([{ value: "probe" }], { session });
-      await TxTestModel.findById(doc[0]._id, null, { session });
-      await TxTestModel.deleteOne({ _id: doc[0]._id }, { session });
+      const [created] = await TxTestModel.create([{ value: "probe" }], { session });
+      if (created === undefined) throw new Error("Transaction probe: create returned empty array");
+      await TxTestModel.findById(created._id, null, { session });
+      await TxTestModel.deleteOne({ _id: created._id }, { session });
     });
   } finally {
     await session.endSession();
