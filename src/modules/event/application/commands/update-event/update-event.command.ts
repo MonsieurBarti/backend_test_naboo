@@ -13,7 +13,7 @@ import type { RecurrencePatternProps } from "../../../domain/event/recurrence-pa
 import { recurrencePatternSchema } from "../../../domain/event/recurrence-pattern";
 import { Occurrence } from "../../../domain/occurrence/occurrence";
 import { IOccurrenceRepository } from "../../../domain/occurrence/occurrence.repository";
-import { EVENT_REPOSITORY, OCCURRENCE_REPOSITORY } from "../../../event.tokens";
+import { EVENT_TOKENS } from "../../../event.tokens";
 import { materializeOccurrenceDates } from "../../services/occurrence-materializer.service";
 
 export class UpdateEventCommand extends TypedCommand<void> {
@@ -38,9 +38,9 @@ export class UpdateEventCommand extends TypedCommand<void> {
 @Injectable()
 export class UpdateEventHandler implements ICommandHandler<UpdateEventCommand> {
   constructor(
-    @Inject(EVENT_REPOSITORY)
+    @Inject(EVENT_TOKENS.EVENT_REPOSITORY)
     private readonly eventRepo: IEventRepository,
-    @Inject(OCCURRENCE_REPOSITORY)
+    @Inject(EVENT_TOKENS.OCCURRENCE_REPOSITORY)
     private readonly occurrenceRepo: IOccurrenceRepository,
     private readonly dateProvider: IDateProvider,
   ) {}

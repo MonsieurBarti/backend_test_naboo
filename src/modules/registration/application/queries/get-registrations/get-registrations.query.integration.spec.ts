@@ -12,10 +12,11 @@ import { TestLoggerModule } from "../../../../../shared/testing/test-logger.modu
 import { MongooseRegistrationRepository } from "../../../infrastructure/registration/mongoose-registration.repository";
 import type { RegistrationDocument } from "../../../infrastructure/registration/registration.schema";
 import { RegistrationSchema } from "../../../infrastructure/registration/registration.schema";
-import { REGISTRATION_REPOSITORY } from "../../../registration.tokens";
+import { REGISTRATION_TOKENS } from "../../../registration.tokens";
 import { GetRegistrationsHandler, GetRegistrationsQuery } from "./get-registrations.query";
 
-const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017/test?replicaSet=rs0";
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) throw new Error("MONGODB_URI not set — did testcontainers globalSetup run?");
 
 // Stub CacheService that always misses
 class StubCacheService {
@@ -50,7 +51,7 @@ describe("GetRegistrationsHandler (integration)", () => {
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        MongooseModule.forRoot(MONGODB_URI, { serverSelectionTimeoutMS: 5000 }),
+        MongooseModule.forRoot(mongoUri, { serverSelectionTimeoutMS: 5000 }),
         MongooseModule.forFeature([{ name: "Registration", schema: RegistrationSchema }]),
         TestLoggerModule,
         CqrsModule,
@@ -58,7 +59,10 @@ describe("GetRegistrationsHandler (integration)", () => {
       ],
       providers: [
         GetRegistrationsHandler,
-        { provide: REGISTRATION_REPOSITORY, useClass: MongooseRegistrationRepository },
+        {
+          provide: REGISTRATION_TOKENS.REGISTRATION_REPOSITORY,
+          useClass: MongooseRegistrationRepository,
+        },
         { provide: CacheService, useClass: StubCacheService },
       ],
     }).compile();

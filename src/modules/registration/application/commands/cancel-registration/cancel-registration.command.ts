@@ -3,10 +3,10 @@ import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 import { TypedCommand } from "../../../../../shared/cqrs/typed-command";
 import { IDateProvider } from "../../../../../shared/date/date-provider";
 import { IOccurrenceRepository } from "../../../../event/domain/occurrence/occurrence.repository";
-import { OCCURRENCE_REPOSITORY } from "../../../../event/event.tokens";
+import { EVENT_TOKENS } from "../../../../event/event.tokens";
 import { RegistrationNotFoundError } from "../../../domain/errors/registration-base.error";
 import { IRegistrationRepository } from "../../../domain/registration/registration.repository";
-import { REGISTRATION_REPOSITORY } from "../../../registration.tokens";
+import { REGISTRATION_TOKENS } from "../../../registration.tokens";
 
 export class CancelRegistrationCommand extends TypedCommand<void> {
   constructor(
@@ -24,9 +24,9 @@ export class CancelRegistrationCommand extends TypedCommand<void> {
 @Injectable()
 export class CancelRegistrationHandler implements ICommandHandler<CancelRegistrationCommand> {
   constructor(
-    @Inject(REGISTRATION_REPOSITORY)
+    @Inject(REGISTRATION_TOKENS.REGISTRATION_REPOSITORY)
     private readonly registrationRepo: IRegistrationRepository,
-    @Inject(OCCURRENCE_REPOSITORY)
+    @Inject(EVENT_TOKENS.OCCURRENCE_REPOSITORY)
     private readonly occurrenceRepo: IOccurrenceRepository,
     private readonly dateProvider: IDateProvider,
   ) {}

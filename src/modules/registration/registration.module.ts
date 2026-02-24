@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { CqrsModule } from "@nestjs/cqrs";
 import { MongooseModule } from "@nestjs/mongoose";
+import { DateProviderModule } from "src/shared/date/date-provider.module";
 import { TypedCommandBus } from "../../shared/cqrs/typed-command-bus";
 import { TypedQueryBus } from "../../shared/cqrs/typed-query-bus";
 import { EventModule } from "../event/event.module";
@@ -13,13 +14,14 @@ import { MongooseRegistrationRepository } from "./infrastructure/registration/mo
 import { RegistrationMapper } from "./infrastructure/registration/registration.mapper";
 import { RegistrationSchema } from "./infrastructure/registration/registration.schema";
 import { RegistrationResolver } from "./presentation/registration.resolver";
-import { REGISTRATION_REPOSITORY } from "./registration.tokens";
+import { REGISTRATION_TOKENS } from "./registration.tokens";
 
 @Module({
   imports: [
     CqrsModule,
     MongooseModule.forFeature([{ name: "Registration", schema: RegistrationSchema }]),
     EventModule,
+    DateProviderModule,
   ],
   providers: [
     // Command handlers
@@ -38,7 +40,10 @@ import { REGISTRATION_REPOSITORY } from "./registration.tokens";
     TypedCommandBus,
     TypedQueryBus,
     // Repository token (used by command handlers)
-    { provide: REGISTRATION_REPOSITORY, useClass: MongooseRegistrationRepository },
+    {
+      provide: REGISTRATION_TOKENS.REGISTRATION_REPOSITORY,
+      useClass: MongooseRegistrationRepository,
+    },
   ],
 })
 export class RegistrationModule {}

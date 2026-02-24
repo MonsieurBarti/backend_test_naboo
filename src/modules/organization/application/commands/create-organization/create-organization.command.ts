@@ -6,7 +6,7 @@ import { SlugAlreadyTakenError } from "../../../domain/errors/organization-base.
 import { Organization } from "../../../domain/organization/organization";
 import { IOrganizationRepository } from "../../../domain/organization/organization.repository";
 import { generateSlug } from "../../../domain/organization/slug";
-import { ORGANIZATION_REPOSITORY } from "../../../organization.tokens";
+import { ORGANIZATION_TOKENS } from "../../../organization.tokens";
 
 export class CreateOrganizationCommand extends TypedCommand<void> {
   constructor(
@@ -23,7 +23,7 @@ export class CreateOrganizationCommand extends TypedCommand<void> {
 @Injectable()
 export class CreateOrganizationHandler implements ICommandHandler<CreateOrganizationCommand> {
   constructor(
-    @Inject(ORGANIZATION_REPOSITORY)
+    @Inject(ORGANIZATION_TOKENS.ORGANIZATION_REPOSITORY)
     private readonly orgRepo: IOrganizationRepository,
     private readonly dateProvider: IDateProvider,
   ) {}

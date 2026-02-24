@@ -10,11 +10,12 @@ import { MongooseOrganizationRepository } from "../../../infrastructure/organiza
 import { OrganizationMapper } from "../../../infrastructure/organization/organization.mapper";
 import type { OrganizationDocument } from "../../../infrastructure/organization/organization.schema";
 import { OrganizationSchema } from "../../../infrastructure/organization/organization.schema";
-import { ORGANIZATION_REPOSITORY } from "../../../organization.tokens";
+import { ORGANIZATION_TOKENS } from "../../../organization.tokens";
 import type { GetOrganizationQueryResult } from "./get-organization.query";
 import { GetOrganizationHandler, GetOrganizationQuery } from "./get-organization.query";
 
-const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017/test?replicaSet=rs0";
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) throw new Error("MONGODB_URI not set — did testcontainers globalSetup run?");
 
 describe("GetOrganizationHandler (integration)", () => {
   let orgModel: Model<OrganizationDocument>;
@@ -28,7 +29,7 @@ describe("GetOrganizationHandler (integration)", () => {
     module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        MongooseModule.forRoot(MONGODB_URI, { serverSelectionTimeoutMS: 5000 }),
+        MongooseModule.forRoot(mongoUri, { serverSelectionTimeoutMS: 5000 }),
         MongooseModule.forFeature([{ name: "Organization", schema: OrganizationSchema }]),
         TestLoggerModule,
         CqrsModule,
@@ -36,7 +37,10 @@ describe("GetOrganizationHandler (integration)", () => {
       providers: [
         GetOrganizationHandler,
         OrganizationMapper,
-        { provide: ORGANIZATION_REPOSITORY, useClass: MongooseOrganizationRepository },
+        {
+          provide: ORGANIZATION_TOKENS.ORGANIZATION_REPOSITORY,
+          useClass: MongooseOrganizationRepository,
+        },
       ],
     }).compile();
 

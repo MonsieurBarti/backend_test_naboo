@@ -4,7 +4,7 @@ import { ClsService } from "nestjs-cls";
 import { TypedQuery } from "../../../../../shared/cqrs/typed-query";
 import { CacheService } from "../../../../../shared/redis/cache.service";
 import type { IRegistrationRepository } from "../../../domain/registration/registration.repository";
-import { REGISTRATION_REPOSITORY } from "../../../registration.tokens";
+import { REGISTRATION_TOKENS } from "../../../registration.tokens";
 
 export interface RegistrationReadModel {
   id: string;
@@ -47,7 +47,7 @@ export class GetRegistrationsHandler
   implements IQueryHandler<GetRegistrationsQuery, RegistrationPaginatedResult>
 {
   constructor(
-    @Inject(REGISTRATION_REPOSITORY)
+    @Inject(REGISTRATION_TOKENS.REGISTRATION_REPOSITORY)
     private readonly registrationRepo: IRegistrationRepository,
     private readonly cls: ClsService,
     private readonly cacheService: CacheService,

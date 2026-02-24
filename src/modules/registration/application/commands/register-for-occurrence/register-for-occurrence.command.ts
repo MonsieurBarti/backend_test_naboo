@@ -4,7 +4,7 @@ import { TypedCommand } from "../../../../../shared/cqrs/typed-command";
 import { IDateProvider } from "../../../../../shared/date/date-provider";
 import { IEventRepository } from "../../../../event/domain/event/event.repository";
 import { IOccurrenceRepository } from "../../../../event/domain/occurrence/occurrence.repository";
-import { EVENT_REPOSITORY, OCCURRENCE_REPOSITORY } from "../../../../event/event.tokens";
+import { EVENT_TOKENS } from "../../../../event/event.tokens";
 import {
   AlreadyRegisteredError,
   CapacityExceededError,
@@ -15,7 +15,7 @@ import {
 } from "../../../domain/errors/registration-base.error";
 import { Registration } from "../../../domain/registration/registration";
 import { IRegistrationRepository } from "../../../domain/registration/registration.repository";
-import { REGISTRATION_REPOSITORY } from "../../../registration.tokens";
+import { REGISTRATION_TOKENS } from "../../../registration.tokens";
 
 export class RegisterForOccurrenceCommand extends TypedCommand<void> {
   constructor(
@@ -36,11 +36,11 @@ export class RegisterForOccurrenceCommand extends TypedCommand<void> {
 @Injectable()
 export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterForOccurrenceCommand> {
   constructor(
-    @Inject(REGISTRATION_REPOSITORY)
+    @Inject(REGISTRATION_TOKENS.REGISTRATION_REPOSITORY)
     private readonly registrationRepo: IRegistrationRepository,
-    @Inject(OCCURRENCE_REPOSITORY)
+    @Inject(EVENT_TOKENS.OCCURRENCE_REPOSITORY)
     private readonly occurrenceRepo: IOccurrenceRepository,
-    @Inject(EVENT_REPOSITORY)
+    @Inject(EVENT_TOKENS.EVENT_REPOSITORY)
     private readonly eventRepo: IEventRepository,
     private readonly dateProvider: IDateProvider,
   ) {}

@@ -12,7 +12,7 @@ import type { FastifyRequest } from "fastify";
 import { ClsService } from "nestjs-cls";
 import { z } from "zod";
 import { IOrganizationRepository } from "../../modules/organization/domain/organization/organization.repository";
-import { ORGANIZATION_REPOSITORY } from "../../modules/organization/organization.tokens";
+import { ORGANIZATION_TOKENS } from "../../modules/organization/organization.tokens";
 
 export const IS_PUBLIC_KEY = "isPublic";
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
@@ -23,7 +23,7 @@ const tenantIdSchema = z.string().uuid();
 export class TenantGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    @Inject(ORGANIZATION_REPOSITORY)
+    @Inject(ORGANIZATION_TOKENS.ORGANIZATION_REPOSITORY)
     private readonly orgRepo: IOrganizationRepository,
     private readonly cls: ClsService,
   ) {}

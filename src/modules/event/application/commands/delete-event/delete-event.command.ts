@@ -5,7 +5,7 @@ import { IDateProvider } from "../../../../../shared/date/date-provider";
 import { EventNotFoundError } from "../../../domain/errors/event-base.error";
 import { IEventRepository } from "../../../domain/event/event.repository";
 import { IOccurrenceRepository } from "../../../domain/occurrence/occurrence.repository";
-import { EVENT_REPOSITORY, OCCURRENCE_REPOSITORY } from "../../../event.tokens";
+import { EVENT_TOKENS } from "../../../event.tokens";
 
 export class DeleteEventCommand extends TypedCommand<void> {
   constructor(
@@ -22,9 +22,9 @@ export class DeleteEventCommand extends TypedCommand<void> {
 @Injectable()
 export class DeleteEventHandler implements ICommandHandler<DeleteEventCommand> {
   constructor(
-    @Inject(EVENT_REPOSITORY)
+    @Inject(EVENT_TOKENS.EVENT_REPOSITORY)
     private readonly eventRepo: IEventRepository,
-    @Inject(OCCURRENCE_REPOSITORY)
+    @Inject(EVENT_TOKENS.OCCURRENCE_REPOSITORY)
     private readonly occurrenceRepo: IOccurrenceRepository,
     private readonly dateProvider: IDateProvider,
   ) {}
