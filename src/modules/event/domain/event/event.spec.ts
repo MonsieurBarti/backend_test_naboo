@@ -90,6 +90,31 @@ describe("Event", () => {
       expect(event.isDeleted).toBe(true);
     });
 
+    it("reconstitutes with null recurrencePattern sub-fields from MongoDB", () => {
+      const props = {
+        ...baseProps,
+        recurrencePattern: {
+          frequency: "WEEKLY" as const,
+          byDay: ["MO" as const],
+          byMonthDay: null,
+          byMonth: null,
+          until: null,
+        },
+        deletedAt: undefined,
+        createdAt: new Date("2023-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2023-06-01T00:00:00.000Z"),
+      };
+
+      const event = Event.create(props);
+
+      expect(event.recurrencePattern).toBeDefined();
+      expect(event.recurrencePattern?.frequency).toBe("WEEKLY");
+      expect(event.recurrencePattern?.byMonthDay).toBeNull();
+      expect(event.recurrencePattern?.byMonth).toBeNull();
+      expect(event.recurrencePattern?.until).toBeNull();
+      expect(event.isRecurring).toBe(true);
+    });
+
     it("throws ZodError when props are invalid", () => {
       expect(() =>
         Event.create({
