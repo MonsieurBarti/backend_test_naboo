@@ -10,8 +10,8 @@ import { EventModule } from "./modules/event/event.module";
 import { HealthModule } from "./modules/health/health.module";
 import { OrganizationModule } from "./modules/organization/organization.module";
 import { RegistrationModule } from "./modules/registration/registration.module";
-import { IDateProvider } from "./shared/date/date-provider";
-import { DateProvider } from "./shared/date/date-provider.impl";
+import { CqrsProviderModule } from "./shared/cqrs/cqrs-provider.module";
+import { DateProviderModule } from "./shared/date/date-provider.module";
 import { GraphqlConfigModule } from "./shared/graphql/graphql.module";
 import { TenantGuard } from "./shared/guards/tenant.guard";
 import { CqrsInterceptor } from "./shared/interceptors/cqrs.interceptor";
@@ -27,6 +27,7 @@ import { RedisModule } from "./shared/redis/redis.module";
     MongooseConfigModule,
     RedisModule,
     GraphqlConfigModule,
+    DateProviderModule,
     ClsModule.forRoot({
       global: true,
       middleware: {
@@ -37,6 +38,7 @@ import { RedisModule } from "./shared/redis/redis.module";
       },
     }),
     CqrsModule.forRoot(),
+    CqrsProviderModule,
     HealthModule,
     OrganizationModule,
     EventModule,
@@ -45,7 +47,6 @@ import { RedisModule } from "./shared/redis/redis.module";
   providers: [
     CqrsInterceptor,
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
-    { provide: IDateProvider, useClass: DateProvider },
     { provide: APP_GUARD, useClass: TenantGuard },
   ],
 })

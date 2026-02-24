@@ -1,8 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { EventBuilder } from "src/modules/event/domain/event/event.builder";
-import { OccurrenceBuilder } from "src/modules/event/domain/occurrence/occurrence.builder";
-import { InMemoryEventRepository } from "src/modules/event/infrastructure/event/in-memory-event.repository";
-import { InMemoryOccurrenceRepository } from "src/modules/event/infrastructure/occurrence/in-memory-occurrence.repository";
 import { FakeDateProvider } from "src/shared/testing/fake-date-provider";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -14,6 +10,7 @@ import {
   OccurrenceNotFoundError,
 } from "../../../domain/errors/registration-base.error";
 import { RegistrationBuilder } from "../../../domain/registration/registration.builder";
+import { InMemoryEventModuleInProc } from "../../../infrastructure/in-memory-event-module.in-proc";
 import { InMemoryRegistrationRepository } from "../../../infrastructure/registration/in-memory-registration.repository";
 import {
   RegisterForOccurrenceCommand,
@@ -22,8 +19,7 @@ import {
 
 describe("RegisterForOccurrence", () => {
   let registrationRepo: InMemoryRegistrationRepository;
-  let occurrenceRepo: InMemoryOccurrenceRepository;
-  let eventRepo: InMemoryEventRepository;
+  let eventModule: InMemoryEventModuleInProc;
   let dateProvider: FakeDateProvider;
   let handler: RegisterForOccurrenceHandler;
 
@@ -31,15 +27,9 @@ describe("RegisterForOccurrence", () => {
 
   beforeEach(() => {
     registrationRepo = new InMemoryRegistrationRepository();
-    occurrenceRepo = new InMemoryOccurrenceRepository();
-    eventRepo = new InMemoryEventRepository();
+    eventModule = new InMemoryEventModuleInProc();
     dateProvider = new FakeDateProvider(NOW);
-    handler = new RegisterForOccurrenceHandler(
-      registrationRepo,
-      occurrenceRepo,
-      eventRepo,
-      dateProvider,
-    );
+    handler = new RegisterForOccurrenceHandler(registrationRepo, eventModule, dateProvider);
   });
 
   it("should register user for a future occurrence with available capacity", async () => {
@@ -49,23 +39,17 @@ describe("RegisterForOccurrence", () => {
     const organizationId = randomUUID();
     const userId = randomUUID();
 
-    const event = new EventBuilder()
-      .withId(eventId)
-      .withOrganizationId(organizationId)
-      .withTitle("Tech Conference")
-      .build();
-    await eventRepo.save(event);
-
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withEventId(eventId)
-      .withOrganizationId(organizationId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withOverrides({ maxCapacity: 50 })
-      .withRegisteredSeats(5)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedEvent({ id: eventId, title: "Tech Conference", isDeleted: false });
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId,
+      organizationId,
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: 50,
+      registeredSeats: 5,
+      deletedAt: undefined,
+    });
 
     const command = new RegisterForOccurrenceCommand({
       registrationId: randomUUID(),
@@ -85,7 +69,7 @@ describe("RegisterForOccurrence", () => {
     expect(reg?.status).toBe("active");
     expect(reg?.seatCount).toBe(1);
 
-    const updatedOccurrence = await occurrenceRepo.findById(occurrenceId);
+    const updatedOccurrence = eventModule.getOccurrence(occurrenceId);
     expect(updatedOccurrence?.registeredSeats).toBe(6);
   });
 
@@ -96,19 +80,17 @@ describe("RegisterForOccurrence", () => {
     const organizationId = randomUUID();
     const userId = randomUUID();
 
-    const event = new EventBuilder().withId(eventId).withOrganizationId(organizationId).build();
-    await eventRepo.save(event);
-
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withEventId(eventId)
-      .withOrganizationId(organizationId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withOverrides({ maxCapacity: 50 })
-      .withRegisteredSeats(0)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedEvent({ id: eventId, title: "Event", isDeleted: false });
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId,
+      organizationId,
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: 50,
+      registeredSeats: 0,
+      deletedAt: undefined,
+    });
 
     const command = new RegisterForOccurrenceCommand({
       registrationId: randomUUID(),
@@ -123,7 +105,7 @@ describe("RegisterForOccurrence", () => {
     await handler.execute(command);
 
     // Assert
-    const updatedOccurrence = await occurrenceRepo.findById(occurrenceId);
+    const updatedOccurrence = eventModule.getOccurrence(occurrenceId);
     expect(updatedOccurrence?.registeredSeats).toBe(3);
   });
 
@@ -134,19 +116,17 @@ describe("RegisterForOccurrence", () => {
     const organizationId = randomUUID();
     const userId = randomUUID();
 
-    const event = new EventBuilder().withId(eventId).withOrganizationId(organizationId).build();
-    await eventRepo.save(event);
-
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withEventId(eventId)
-      .withOrganizationId(organizationId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withOverrides({ maxCapacity: 10 })
-      .withRegisteredSeats(9)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedEvent({ id: eventId, title: "Event", isDeleted: false });
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId,
+      organizationId,
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: 10,
+      registeredSeats: 9,
+      deletedAt: undefined,
+    });
 
     const command = new RegisterForOccurrenceCommand({
       registrationId: randomUUID(),
@@ -180,20 +160,17 @@ describe("RegisterForOccurrence", () => {
     const eventId = randomUUID();
     const occurrenceId = randomUUID();
 
-    const event = new EventBuilder().withId(eventId).withOrganizationId(orgB).build();
-    await eventRepo.save(event);
-
-    // New occurrence in org B overlapping with existing registration
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withEventId(eventId)
-      .withOrganizationId(orgB)
-      .withStartDate(new Date("2026-03-01T12:00:00Z"))
-      .withEndDate(new Date("2026-03-01T20:00:00Z"))
-      .withOverrides({ maxCapacity: 50 })
-      .withRegisteredSeats(0)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedEvent({ id: eventId, title: "Event", isDeleted: false });
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId,
+      organizationId: orgB,
+      startDate: new Date("2026-03-01T12:00:00Z"),
+      endDate: new Date("2026-03-01T20:00:00Z"),
+      maxCapacity: 50,
+      registeredSeats: 0,
+      deletedAt: undefined,
+    });
 
     const command = new RegisterForOccurrenceCommand({
       registrationId: randomUUID(),
@@ -215,18 +192,17 @@ describe("RegisterForOccurrence", () => {
     const organizationId = randomUUID();
     const userId = randomUUID();
 
-    const event = new EventBuilder().withId(eventId).withOrganizationId(organizationId).build();
-    await eventRepo.save(event);
-
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withEventId(eventId)
-      .withOrganizationId(organizationId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withOverrides({ maxCapacity: 50 })
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedEvent({ id: eventId, title: "Event", isDeleted: false });
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId,
+      organizationId,
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: 50,
+      registeredSeats: 0,
+      deletedAt: undefined,
+    });
 
     // Pre-existing active registration
     const existingReg = new RegistrationBuilder()
@@ -257,23 +233,17 @@ describe("RegisterForOccurrence", () => {
     const organizationId = randomUUID();
     const userId = randomUUID();
 
-    const event = new EventBuilder()
-      .withId(eventId)
-      .withOrganizationId(organizationId)
-      .withTitle("Reunion")
-      .build();
-    await eventRepo.save(event);
-
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withEventId(eventId)
-      .withOrganizationId(organizationId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withOverrides({ maxCapacity: 50 })
-      .withRegisteredSeats(2)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedEvent({ id: eventId, title: "Reunion", isDeleted: false });
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId,
+      organizationId,
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: 50,
+      registeredSeats: 2,
+      deletedAt: undefined,
+    });
 
     // Pre-existing cancelled registration
     const cancelledReg = new RegistrationBuilder()
@@ -307,7 +277,7 @@ describe("RegisterForOccurrence", () => {
     expect(reg?.deletedAt).toBeUndefined();
 
     // registeredSeats incremented by new seatCount (3)
-    const updatedOccurrence = await occurrenceRepo.findById(occurrenceId);
+    const updatedOccurrence = eventModule.getOccurrence(occurrenceId);
     expect(updatedOccurrence?.registeredSeats).toBe(5);
   });
 
@@ -318,17 +288,17 @@ describe("RegisterForOccurrence", () => {
     const organizationId = randomUUID();
     const userId = randomUUID();
 
-    const event = new EventBuilder().withId(eventId).withOrganizationId(organizationId).build();
-    await eventRepo.save(event);
-
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withEventId(eventId)
-      .withOrganizationId(organizationId)
-      .withStartDate(new Date("2026-02-20T09:00:00Z"))
-      .withEndDate(new Date("2026-02-20T17:00:00Z")) // in the past relative to NOW
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedEvent({ id: eventId, title: "Event", isDeleted: false });
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId,
+      organizationId,
+      startDate: new Date("2026-02-20T09:00:00Z"),
+      endDate: new Date("2026-02-20T17:00:00Z"), // in the past relative to NOW
+      maxCapacity: undefined,
+      registeredSeats: 0,
+      deletedAt: undefined,
+    });
 
     const command = new RegisterForOccurrenceCommand({
       registrationId: randomUUID(),
@@ -350,18 +320,17 @@ describe("RegisterForOccurrence", () => {
     const organizationId = randomUUID();
     const userId = randomUUID();
 
-    const event = new EventBuilder().withId(eventId).withOrganizationId(organizationId).build();
-    await eventRepo.save(event);
-
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withEventId(eventId)
-      .withOrganizationId(organizationId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .asDeleted()
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedEvent({ id: eventId, title: "Event", isDeleted: false });
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId,
+      organizationId,
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: undefined,
+      registeredSeats: 0,
+      deletedAt: new Date(),
+    });
 
     const command = new RegisterForOccurrenceCommand({
       registrationId: randomUUID(),
@@ -408,20 +377,17 @@ describe("RegisterForOccurrence", () => {
     const eventId = randomUUID();
     const occurrenceId = randomUUID();
 
-    const event = new EventBuilder().withId(eventId).withOrganizationId(organizationId).build();
-    await eventRepo.save(event);
-
-    // New occurrence starts exactly at 10:00 (back-to-back, no overlap)
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withEventId(eventId)
-      .withOrganizationId(organizationId)
-      .withStartDate(new Date("2026-03-01T10:00:00Z"))
-      .withEndDate(new Date("2026-03-01T12:00:00Z"))
-      .withOverrides({ maxCapacity: 50 })
-      .withRegisteredSeats(0)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedEvent({ id: eventId, title: "Event", isDeleted: false });
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId,
+      organizationId,
+      startDate: new Date("2026-03-01T10:00:00Z"),
+      endDate: new Date("2026-03-01T12:00:00Z"),
+      maxCapacity: 50,
+      registeredSeats: 0,
+      deletedAt: undefined,
+    });
 
     const command = new RegisterForOccurrenceCommand({
       registrationId: randomUUID(),

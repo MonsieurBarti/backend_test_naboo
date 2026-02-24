@@ -1,10 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { OccurrenceBuilder } from "src/modules/event/domain/occurrence/occurrence.builder";
-import { InMemoryOccurrenceRepository } from "src/modules/event/infrastructure/occurrence/in-memory-occurrence.repository";
 import { FakeDateProvider } from "src/shared/testing/fake-date-provider";
 import { beforeEach, describe, expect, it } from "vitest";
 import { RegistrationNotFoundError } from "../../../domain/errors/registration-base.error";
 import { RegistrationBuilder } from "../../../domain/registration/registration.builder";
+import { InMemoryEventModuleInProc } from "../../../infrastructure/in-memory-event-module.in-proc";
 import { InMemoryRegistrationRepository } from "../../../infrastructure/registration/in-memory-registration.repository";
 import {
   CancelRegistrationCommand,
@@ -13,7 +12,7 @@ import {
 
 describe("CancelRegistration", () => {
   let registrationRepo: InMemoryRegistrationRepository;
-  let occurrenceRepo: InMemoryOccurrenceRepository;
+  let eventModule: InMemoryEventModuleInProc;
   let dateProvider: FakeDateProvider;
   let handler: CancelRegistrationHandler;
 
@@ -21,9 +20,9 @@ describe("CancelRegistration", () => {
 
   beforeEach(() => {
     registrationRepo = new InMemoryRegistrationRepository();
-    occurrenceRepo = new InMemoryOccurrenceRepository();
+    eventModule = new InMemoryEventModuleInProc();
     dateProvider = new FakeDateProvider(NOW);
-    handler = new CancelRegistrationHandler(registrationRepo, occurrenceRepo, dateProvider);
+    handler = new CancelRegistrationHandler(registrationRepo, eventModule, dateProvider);
   });
 
   it("should fully cancel an active registration and decrement registeredSeats", async () => {
@@ -31,13 +30,16 @@ describe("CancelRegistration", () => {
     const occurrenceId = randomUUID();
     const registrationId = randomUUID();
 
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withRegisteredSeats(5)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId: randomUUID(),
+      organizationId: randomUUID(),
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: undefined,
+      registeredSeats: 5,
+      deletedAt: undefined,
+    });
 
     const registration = new RegistrationBuilder()
       .withId(registrationId)
@@ -60,7 +62,7 @@ describe("CancelRegistration", () => {
     expect(updated?.status).toBe("cancelled");
     expect(updated?.deletedAt).toEqual(NOW);
 
-    const updatedOccurrence = await occurrenceRepo.findById(occurrenceId);
+    const updatedOccurrence = eventModule.getOccurrence(occurrenceId);
     expect(updatedOccurrence?.registeredSeats).toBe(0);
   });
 
@@ -69,13 +71,16 @@ describe("CancelRegistration", () => {
     const occurrenceId = randomUUID();
     const registrationId = randomUUID();
 
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withRegisteredSeats(5)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId: randomUUID(),
+      organizationId: randomUUID(),
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: undefined,
+      registeredSeats: 5,
+      deletedAt: undefined,
+    });
 
     const registration = new RegistrationBuilder()
       .withId(registrationId)
@@ -99,7 +104,7 @@ describe("CancelRegistration", () => {
     expect(updated?.status).toBe("active");
     expect(updated?.seatCount).toBe(3);
 
-    const updatedOccurrence = await occurrenceRepo.findById(occurrenceId);
+    const updatedOccurrence = eventModule.getOccurrence(occurrenceId);
     expect(updatedOccurrence?.registeredSeats).toBe(3);
   });
 
@@ -108,13 +113,16 @@ describe("CancelRegistration", () => {
     const occurrenceId = randomUUID();
     const registrationId = randomUUID();
 
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withRegisteredSeats(3)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId: randomUUID(),
+      organizationId: randomUUID(),
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: undefined,
+      registeredSeats: 3,
+      deletedAt: undefined,
+    });
 
     const registration = new RegistrationBuilder()
       .withId(registrationId)
@@ -138,7 +146,7 @@ describe("CancelRegistration", () => {
     expect(updated?.status).toBe("cancelled");
     expect(updated?.deletedAt).toEqual(NOW);
 
-    const updatedOccurrence = await occurrenceRepo.findById(occurrenceId);
+    const updatedOccurrence = eventModule.getOccurrence(occurrenceId);
     expect(updatedOccurrence?.registeredSeats).toBe(0);
   });
 
@@ -158,13 +166,16 @@ describe("CancelRegistration", () => {
     const occurrenceId = randomUUID();
     const registrationId = randomUUID();
 
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withRegisteredSeats(0)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId: randomUUID(),
+      organizationId: randomUUID(),
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: undefined,
+      registeredSeats: 0,
+      deletedAt: undefined,
+    });
 
     const registration = new RegistrationBuilder()
       .withId(registrationId)
@@ -183,7 +194,7 @@ describe("CancelRegistration", () => {
     await expect(handler.execute(command)).resolves.toBeUndefined();
 
     // Occurrence seats unchanged
-    const updatedOccurrence = await occurrenceRepo.findById(occurrenceId);
+    const updatedOccurrence = eventModule.getOccurrence(occurrenceId);
     expect(updatedOccurrence?.registeredSeats).toBe(0);
   });
 
@@ -193,13 +204,16 @@ describe("CancelRegistration", () => {
     const reg1Id = randomUUID();
     const reg2Id = randomUUID();
 
-    const occurrence = new OccurrenceBuilder()
-      .withId(occurrenceId)
-      .withStartDate(new Date("2026-03-01T09:00:00Z"))
-      .withEndDate(new Date("2026-03-01T17:00:00Z"))
-      .withRegisteredSeats(7)
-      .build();
-    await occurrenceRepo.save(occurrence);
+    eventModule.seedOccurrence({
+      id: occurrenceId,
+      eventId: randomUUID(),
+      organizationId: randomUUID(),
+      startDate: new Date("2026-03-01T09:00:00Z"),
+      endDate: new Date("2026-03-01T17:00:00Z"),
+      maxCapacity: undefined,
+      registeredSeats: 7,
+      deletedAt: undefined,
+    });
 
     // Two registrations: 4 seats and 3 seats
     const reg1 = new RegistrationBuilder()
@@ -228,7 +242,7 @@ describe("CancelRegistration", () => {
     await handler.execute(command);
 
     // Assert: 7 - 4 = 3 seats remaining
-    const updatedOccurrence = await occurrenceRepo.findById(occurrenceId);
+    const updatedOccurrence = eventModule.getOccurrence(occurrenceId);
     expect(updatedOccurrence?.registeredSeats).toBe(3);
   });
 });

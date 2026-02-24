@@ -2,9 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 import { TypedCommand } from "../../../../../shared/cqrs/typed-command";
 import { IDateProvider } from "../../../../../shared/date/date-provider";
-import { IEventRepository } from "../../../../event/domain/event/event.repository";
-import { IOccurrenceRepository } from "../../../../event/domain/occurrence/occurrence.repository";
-import { EVENT_TOKENS } from "../../../../event/event.tokens";
+import { IEventModuleInProc } from "../../../../../shared/in-proc/event-module.in-proc";
 import {
   AlreadyRegisteredError,
   CapacityExceededError,
@@ -38,10 +36,8 @@ export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterFor
   constructor(
     @Inject(REGISTRATION_TOKENS.REGISTRATION_REPOSITORY)
     private readonly registrationRepo: IRegistrationRepository,
-    @Inject(EVENT_TOKENS.OCCURRENCE_REPOSITORY)
-    private readonly occurrenceRepo: IOccurrenceRepository,
-    @Inject(EVENT_TOKENS.EVENT_REPOSITORY)
-    private readonly eventRepo: IEventRepository,
+    @Inject(REGISTRATION_TOKENS.EVENT_MODULE_IN_PROC)
+    private readonly eventModule: IEventModuleInProc,
     private readonly dateProvider: IDateProvider,
   ) {}
 
@@ -53,7 +49,7 @@ export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterFor
       const now = this.dateProvider.now();
 
       // 1. Find occurrence by id
-      const occurrence = await this.occurrenceRepo.findById(occurrenceId, session);
+      const occurrence = await this.eventModule.findOccurrenceById(occurrenceId, session);
       if (occurrence === null) {
         throw new OccurrenceNotFoundError(occurrenceId, { correlationId });
       }
@@ -69,7 +65,7 @@ export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterFor
       }
 
       // 4. Find event — check if deleted
-      const event = await this.eventRepo.findById(occurrence.eventId, session);
+      const event = await this.eventModule.findEventById(occurrence.eventId, session);
       if (event === null || event.isDeleted) {
         throw new EventCancelledError(occurrenceId, { correlationId });
       }
@@ -87,10 +83,9 @@ export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterFor
         if (maxCap !== undefined && occurrence.registeredSeats + seatCount > maxCap) {
           throw new CapacityExceededError(occurrenceId, { correlationId });
         }
-        occurrence.incrementRegisteredSeats(seatCount);
+        await this.eventModule.reserveSeats(occurrenceId, seatCount, session);
         existing.reactivate(seatCount, now);
         await this.registrationRepo.save(existing, session);
-        await this.occurrenceRepo.save(occurrence, session);
         return;
       }
 
@@ -119,7 +114,7 @@ export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterFor
       if (maxCapacity !== undefined && occurrence.registeredSeats + seatCount > maxCapacity) {
         throw new CapacityExceededError(occurrenceId, { correlationId });
       }
-      occurrence.incrementRegisteredSeats(seatCount);
+      await this.eventModule.reserveSeats(occurrenceId, seatCount, session);
 
       // 8. Create new registration
       const registration = Registration.createNew(
@@ -137,7 +132,6 @@ export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterFor
       );
 
       await this.registrationRepo.save(registration, session);
-      await this.occurrenceRepo.save(occurrence, session);
     });
   }
 }

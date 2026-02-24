@@ -1,13 +1,11 @@
 import { Module } from "@nestjs/common";
-import { CqrsModule } from "@nestjs/cqrs";
-import { DateProviderModule } from "src/shared/date/date-provider.module";
-import { TypedCommandBus } from "../../../shared/cqrs/typed-command-bus";
-import { TypedQueryBus } from "../../../shared/cqrs/typed-query-bus";
+import { IEventModuleInProc } from "../../../shared/in-proc/event-module.in-proc";
 import { EVENT_TOKENS } from "../event.tokens";
 import { EventMapper } from "../infrastructure/event/event.mapper";
 import { MongooseEventRepository } from "../infrastructure/event/mongoose-event.repository";
 import { MongooseOccurrenceRepository } from "../infrastructure/occurrence/mongoose-occurrence.repository";
 import { OccurrenceMapper } from "../infrastructure/occurrence/occurrence.mapper";
+import { EventModuleInProcImpl } from "../presentation/in-proc/event-module.in-proc.impl";
 import { CreateEventHandler } from "./commands/create-event/create-event.command";
 import { DeleteEventHandler } from "./commands/delete-event/delete-event.command";
 import { UpdateEventHandler } from "./commands/update-event/update-event.command";
@@ -26,21 +24,19 @@ export const eventHandlers = [
 ];
 
 @Module({
-  imports: [DateProviderModule, CqrsModule],
   providers: [
     // Mappers
     EventMapper,
     OccurrenceMapper,
-    // Typed buses
-    TypedCommandBus,
-    TypedQueryBus,
     // Repository tokens (used by command handlers only)
     { provide: EVENT_TOKENS.EVENT_REPOSITORY, useClass: MongooseEventRepository },
     { provide: EVENT_TOKENS.OCCURRENCE_REPOSITORY, useClass: MongooseOccurrenceRepository },
+    // In-proc facade (cross-module access)
+    { provide: IEventModuleInProc, useClass: EventModuleInProcImpl },
     ...commandHandlers,
     ...queryHandlers,
     ...eventHandlers,
   ],
-  exports: [...commandHandlers, ...queryHandlers, ...eventHandlers],
+  exports: [IEventModuleInProc, ...commandHandlers, ...queryHandlers, ...eventHandlers],
 })
 export class EventApplicationModule {}

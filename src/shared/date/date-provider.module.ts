@@ -1,7 +1,8 @@
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { IDateProvider } from "./date-provider";
 import { DateProvider } from "./date-provider.impl";
 
+@Global()
 @Module({
   providers: [
     {

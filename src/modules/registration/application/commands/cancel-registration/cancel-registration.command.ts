@@ -2,8 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 import { TypedCommand } from "../../../../../shared/cqrs/typed-command";
 import { IDateProvider } from "../../../../../shared/date/date-provider";
-import { IOccurrenceRepository } from "../../../../event/domain/occurrence/occurrence.repository";
-import { EVENT_TOKENS } from "../../../../event/event.tokens";
+import { IEventModuleInProc } from "../../../../../shared/in-proc/event-module.in-proc";
 import { RegistrationNotFoundError } from "../../../domain/errors/registration-base.error";
 import { IRegistrationRepository } from "../../../domain/registration/registration.repository";
 import { REGISTRATION_TOKENS } from "../../../registration.tokens";
@@ -26,8 +25,8 @@ export class CancelRegistrationHandler implements ICommandHandler<CancelRegistra
   constructor(
     @Inject(REGISTRATION_TOKENS.REGISTRATION_REPOSITORY)
     private readonly registrationRepo: IRegistrationRepository,
-    @Inject(EVENT_TOKENS.OCCURRENCE_REPOSITORY)
-    private readonly occurrenceRepo: IOccurrenceRepository,
+    @Inject(REGISTRATION_TOKENS.EVENT_MODULE_IN_PROC)
+    private readonly eventModule: IEventModuleInProc,
     private readonly dateProvider: IDateProvider,
   ) {}
 
@@ -52,18 +51,11 @@ export class CancelRegistrationHandler implements ICommandHandler<CancelRegistra
           return;
         }
 
-        // Find occurrence to decrement seats
-        const occurrence = await this.occurrenceRepo.findById(registration.occurrenceId, session);
-
         // 3. Perform full cancellation
         const seatsDelta = registration.seatCount;
         registration.cancel(now);
 
-        if (occurrence !== null) {
-          occurrence.decrementRegisteredSeats(seatsDelta);
-          await this.occurrenceRepo.save(occurrence, session);
-        }
-
+        await this.eventModule.releaseSeats(registration.occurrenceId, seatsDelta, session);
         await this.registrationRepo.save(registration, session);
       } else {
         // Partial cancellation: newSeatCount > 0
@@ -76,16 +68,9 @@ export class CancelRegistrationHandler implements ICommandHandler<CancelRegistra
 
         const delta = currentSeatCount - newSeatCount;
 
-        // Find occurrence to decrement seats by delta
-        const occurrence = await this.occurrenceRepo.findById(registration.occurrenceId, session);
-
         registration.updateSeatCount(newSeatCount, now);
 
-        if (occurrence !== null) {
-          occurrence.decrementRegisteredSeats(delta);
-          await this.occurrenceRepo.save(occurrence, session);
-        }
-
+        await this.eventModule.releaseSeats(registration.occurrenceId, delta, session);
         await this.registrationRepo.save(registration, session);
       }
     });
