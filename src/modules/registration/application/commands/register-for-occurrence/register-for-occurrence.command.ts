@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 import { TypedCommand } from "../../../../../shared/cqrs/typed-command";
@@ -21,6 +20,7 @@ import { REGISTRATION_REPOSITORY } from "../../../registration.tokens";
 export class RegisterForOccurrenceCommand extends TypedCommand<void> {
   constructor(
     public readonly props: {
+      readonly registrationId: string;
       readonly occurrenceId: string;
       readonly userId: string;
       readonly seatCount: number;
@@ -46,7 +46,8 @@ export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterFor
   ) {}
 
   async execute(command: RegisterForOccurrenceCommand): Promise<void> {
-    const { occurrenceId, userId, seatCount, organizationId, correlationId } = command.props;
+    const { registrationId, occurrenceId, userId, seatCount, organizationId, correlationId } =
+      command.props;
 
     await this.registrationRepo.withTransaction(async (session) => {
       const now = this.dateProvider.now();
@@ -122,7 +123,7 @@ export class RegisterForOccurrenceHandler implements ICommandHandler<RegisterFor
 
       // 8. Create new registration
       const registration = Registration.create({
-        id: randomUUID(),
+        id: registrationId,
         occurrenceId,
         organizationId,
         userId,

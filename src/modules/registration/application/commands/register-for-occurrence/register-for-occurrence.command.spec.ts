@@ -77,6 +77,7 @@ describe("RegisterForOccurrence", () => {
     await occurrenceRepo.save(occurrence);
 
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId,
       userId,
       seatCount: 1,
@@ -119,6 +120,7 @@ describe("RegisterForOccurrence", () => {
     await occurrenceRepo.save(occurrence);
 
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId,
       userId,
       seatCount: 3,
@@ -156,6 +158,7 @@ describe("RegisterForOccurrence", () => {
     await occurrenceRepo.save(occurrence);
 
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId,
       userId,
       seatCount: 2,
@@ -202,6 +205,7 @@ describe("RegisterForOccurrence", () => {
     await occurrenceRepo.save(occurrence);
 
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId,
       userId,
       seatCount: 1,
@@ -243,6 +247,7 @@ describe("RegisterForOccurrence", () => {
     await registrationRepo.save(existingReg);
 
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId,
       userId,
       seatCount: 1,
@@ -291,6 +296,7 @@ describe("RegisterForOccurrence", () => {
     await registrationRepo.save(cancelledReg);
 
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId,
       userId,
       seatCount: 3,
@@ -334,6 +340,7 @@ describe("RegisterForOccurrence", () => {
     await occurrenceRepo.save(occurrence);
 
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId,
       userId,
       seatCount: 1,
@@ -366,6 +373,7 @@ describe("RegisterForOccurrence", () => {
     await occurrenceRepo.save(occurrence);
 
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId,
       userId,
       seatCount: 1,
@@ -380,6 +388,7 @@ describe("RegisterForOccurrence", () => {
   it("should throw OccurrenceNotFoundError for non-existent occurrenceId", async () => {
     // Arrange
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId: randomUUID(),
       userId: randomUUID(),
       seatCount: 1,
@@ -424,6 +433,7 @@ describe("RegisterForOccurrence", () => {
     await occurrenceRepo.save(occurrence);
 
     const command = new RegisterForOccurrenceCommand({
+      registrationId: randomUUID(),
       occurrenceId,
       userId,
       seatCount: 1,
