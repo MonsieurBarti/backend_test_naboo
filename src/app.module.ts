@@ -9,6 +9,7 @@ import { validateEnvironment } from "./config/env";
 import { EventModule } from "./modules/event/event.module";
 import { HealthModule } from "./modules/health/health.module";
 import { OrganizationModule } from "./modules/organization/organization.module";
+import { RegistrationModule } from "./modules/registration/registration.module";
 import { IDateProvider } from "./shared/date/date-provider";
 import { DateProvider } from "./shared/date/date-provider.impl";
 import { GraphqlConfigModule } from "./shared/graphql/graphql.module";
@@ -39,6 +40,7 @@ import { RedisModule } from "./shared/redis/redis.module";
     HealthModule,
     OrganizationModule,
     EventModule,
+    RegistrationModule,
   ],
   providers: [
     CqrsInterceptor,

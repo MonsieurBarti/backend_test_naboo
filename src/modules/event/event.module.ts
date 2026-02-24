@@ -36,5 +36,6 @@ import { EventResolver } from "./presentation/event.resolver";
     { provide: EVENT_REPOSITORY, useClass: MongooseEventRepository },
     { provide: OCCURRENCE_REPOSITORY, useClass: MongooseOccurrenceRepository },
   ],
+  exports: [EVENT_REPOSITORY, OCCURRENCE_REPOSITORY],
 })
 export class EventModule {}
