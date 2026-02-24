@@ -1,10 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
 import { TypedQuery } from "../../../../../shared/cqrs/typed-query";
-import { decodeCursor } from "../../../../../shared/graphql/relay-pagination";
-import type { RegistrationDocument } from "../../../infrastructure/registration/registration.schema";
+import type { IRegistrationRepository } from "../../../domain/registration/registration.repository";
+import { REGISTRATION_REPOSITORY } from "../../../registration.tokens";
 
 export interface RegistrationReadModel {
   id: string;
@@ -47,52 +45,35 @@ export class GetRegistrationsHandler
   implements IQueryHandler<GetRegistrationsQuery, RegistrationPaginatedResult>
 {
   constructor(
-    @InjectModel("Registration")
-    private readonly model: Model<RegistrationDocument>,
+    @Inject(REGISTRATION_REPOSITORY)
+    private readonly registrationRepo: IRegistrationRepository,
   ) {}
 
   async execute(query: GetRegistrationsQuery): Promise<RegistrationPaginatedResult> {
     const { userId, organizationId, includeCancelled, first, after } = query.props;
 
-    const baseFilter: Record<string, unknown> = {
-      organizationId,
+    const result = await this.registrationRepo.findByUserInOrganization({
       userId,
-      ...(includeCancelled ? {} : { status: "active" }),
-    };
+      organizationId,
+      includeCancelled,
+      first,
+      after,
+    });
 
-    const countFilter = { ...baseFilter };
-
-    if (after !== undefined) {
-      baseFilter["_id"] = { $gt: decodeCursor(after) };
-    }
-
-    const [docs, totalCount] = await Promise.all([
-      this.model
-        .find(baseFilter)
-        .sort({ _id: 1 })
-        .limit(first + 1)
-        .lean<RegistrationDocument[]>()
-        .exec(),
-      this.model.countDocuments(countFilter).exec(),
-    ]);
-
-    const hasNextPage = docs.length > first;
-    if (hasNextPage) docs.pop();
-
-    const items: RegistrationReadModel[] = docs.map((doc) => ({
-      id: doc._id,
-      occurrenceId: doc.occurrenceId,
-      organizationId: doc.organizationId,
-      userId: doc.userId,
-      seatCount: doc.seatCount,
-      status: doc.status,
-      occurrenceStartDate: doc.occurrenceStartDate,
-      occurrenceEndDate: doc.occurrenceEndDate,
-      eventTitle: doc.eventTitle,
-      createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt,
+    const items: RegistrationReadModel[] = result.items.map((reg) => ({
+      id: reg.id,
+      occurrenceId: reg.occurrenceId,
+      organizationId: reg.organizationId,
+      userId: reg.userId,
+      seatCount: reg.seatCount,
+      status: reg.status,
+      occurrenceStartDate: reg.occurrenceStartDate,
+      occurrenceEndDate: reg.occurrenceEndDate,
+      eventTitle: reg.eventTitle,
+      createdAt: reg.createdAt,
+      updatedAt: reg.updatedAt,
     }));
 
-    return { items, hasNextPage, totalCount };
+    return { items, hasNextPage: result.hasNextPage, totalCount: result.totalCount };
   }
 }
