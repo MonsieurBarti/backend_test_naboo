@@ -1,5 +1,9 @@
 import { AggregateRoot } from "@nestjs/cqrs";
 import { z } from "zod";
+import {
+  OccurrenceCapacityExceededError,
+  SeatDecrementBelowZeroError,
+} from "../errors/event-base.error";
 
 export const OccurrencePropsSchema = z.object({
   id: z.uuid(),
@@ -38,18 +42,14 @@ export class Occurrence extends AggregateRoot {
       this.props.maxCapacity !== undefined &&
       this.props.registeredSeats + count > this.props.maxCapacity
     ) {
-      throw new Error(
-        `Capacity exceeded: registeredSeats (${this.props.registeredSeats}) + count (${count}) > maxCapacity (${this.props.maxCapacity})`,
-      );
+      throw new OccurrenceCapacityExceededError(this.props.id);
     }
     this.props = { ...this.props, registeredSeats: this.props.registeredSeats + count };
   }
 
   decrementRegisteredSeats(count: number): void {
     if (this.props.registeredSeats - count < 0) {
-      throw new Error(
-        `Cannot decrement below zero: registeredSeats (${this.props.registeredSeats}) - count (${count}) < 0`,
-      );
+      throw new SeatDecrementBelowZeroError(this.props.id);
     }
     this.props = { ...this.props, registeredSeats: this.props.registeredSeats - count };
   }

@@ -48,3 +48,27 @@ export class InvalidRecurrencePatternError extends EventBaseError {
     });
   }
 }
+
+export class OccurrenceCapacityExceededError extends EventBaseError {
+  override readonly errorCode = "EVENT.OCCURRENCE_CAPACITY_EXCEEDED";
+
+  constructor(occurrenceId: string, options?: { correlationId?: string }) {
+    super(`Capacity exceeded for occurrence "${occurrenceId}"`, {
+      reportToMonitoring: false,
+      correlationId: options?.correlationId,
+      metadata: { occurrenceId },
+    });
+  }
+}
+
+export class SeatDecrementBelowZeroError extends EventBaseError {
+  override readonly errorCode = "EVENT.SEAT_DECREMENT_BELOW_ZERO";
+
+  constructor(occurrenceId: string, options?: { correlationId?: string }) {
+    super(`Cannot decrement registeredSeats below zero for occurrence "${occurrenceId}"`, {
+      reportToMonitoring: false,
+      correlationId: options?.correlationId,
+      metadata: { occurrenceId },
+    });
+  }
+}
