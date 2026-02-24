@@ -13,8 +13,8 @@ import {
   CapacityExceededError,
   ConflictDetectedError,
   EventCancelledError,
-  NotOrgMemberError,
   OccurrenceInPastError,
+  OccurrenceNotFoundError,
   RegistrationNotFoundError,
 } from "../domain/errors/registration-base.error";
 import {
@@ -25,8 +25,8 @@ import {
   CapacityExceededErrorType,
   ConflictDetectedErrorType,
   EventCancelledErrorType,
-  NotOrgMemberErrorType,
   OccurrenceInPastErrorType,
+  OccurrenceNotFoundErrorType,
   RegisterForOccurrenceInput,
   RegisterForOccurrenceResult,
   RegisterForOccurrenceSuccess,
@@ -130,11 +130,10 @@ export class RegistrationResolver {
         errorResult.occurrenceId = getString(err.metadata, "occurrenceId");
         return errorResult;
       }
-      if (err instanceof NotOrgMemberError) {
-        const errorResult = new NotOrgMemberErrorType();
+      if (err instanceof OccurrenceNotFoundError) {
+        const errorResult = new OccurrenceNotFoundErrorType();
         errorResult.message = err.message;
-        errorResult.userId = getString(err.metadata, "userId");
-        errorResult.organizationId = getString(err.metadata, "organizationId");
+        errorResult.occurrenceId = getString(err.metadata, "occurrenceId");
         return errorResult;
       }
       throw err;

@@ -153,15 +153,12 @@ export class EventCancelledErrorType {
 }
 
 @ObjectType()
-export class NotOrgMemberErrorType {
+export class OccurrenceNotFoundErrorType {
   @Field()
   message!: string;
 
   @Field()
-  userId!: string;
-
-  @Field()
-  organizationId!: string;
+  occurrenceId!: string;
 }
 
 @ObjectType()
@@ -185,7 +182,7 @@ export const RegisterForOccurrenceResult = createUnionType({
       AlreadyRegisteredErrorType,
       OccurrenceInPastErrorType,
       EventCancelledErrorType,
-      NotOrgMemberErrorType,
+      OccurrenceNotFoundErrorType,
     ] as const,
 });
 
