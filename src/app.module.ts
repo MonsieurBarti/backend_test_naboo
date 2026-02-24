@@ -6,6 +6,7 @@ import { CqrsModule } from "@nestjs/cqrs";
 import type { FastifyRequest } from "fastify";
 import { ClsModule } from "nestjs-cls";
 import { validateEnvironment } from "./config/env";
+import { EventModule } from "./modules/event/event.module";
 import { HealthModule } from "./modules/health/health.module";
 import { OrganizationModule } from "./modules/organization/organization.module";
 import { IDateProvider } from "./shared/date/date-provider";
@@ -37,6 +38,7 @@ import { RedisModule } from "./shared/redis/redis.module";
     CqrsModule.forRoot(),
     HealthModule,
     OrganizationModule,
+    EventModule,
   ],
   providers: [
     CqrsInterceptor,

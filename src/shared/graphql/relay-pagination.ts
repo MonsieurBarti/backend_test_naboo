@@ -1,7 +1,19 @@
 import { Type } from "@nestjs/common";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 
-export function Paginated<T>(classRef: Type<T>): Type<unknown> {
+export interface PaginatedEdge<T> {
+  cursor: string;
+  node: T;
+}
+
+export interface PaginatedResult<T> {
+  edges: PaginatedEdge<T>[];
+  nodes: T[];
+  totalCount: number;
+  hasNextPage: boolean;
+}
+
+export function Paginated<T>(classRef: Type<T>): Type<PaginatedResult<T>> {
   @ObjectType(`${classRef.name}Edge`)
   abstract class EdgeType {
     @Field(() => String)
@@ -26,7 +38,7 @@ export function Paginated<T>(classRef: Type<T>): Type<unknown> {
     hasNextPage!: boolean;
   }
 
-  return PaginatedType as Type<unknown>;
+  return PaginatedType as Type<PaginatedResult<T>>;
 }
 
 export function encodeCursor(id: string): string {
