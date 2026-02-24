@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { validateEnv } from "../shared/config/validate-env";
 
 const EnvSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -10,7 +9,6 @@ const EnvSchema = z.object({
   IS_LOCAL: z.coerce.boolean().default(false),
 });
 
-export const env = validateEnv(EnvSchema);
 export type EnvVars = z.infer<typeof EnvSchema>;
 
 // For NestJS ConfigModule.forRoot validate option — throws instead of process.exit
