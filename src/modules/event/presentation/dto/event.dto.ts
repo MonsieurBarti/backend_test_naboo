@@ -17,10 +17,10 @@ export class EventType {
   @Field(() => String, { nullable: true })
   location!: string | null;
 
-  @Field()
+  @Field(() => Date)
   startDate!: Date;
 
-  @Field()
+  @Field(() => Date)
   endDate!: Date;
 
   @Field(() => Int)
@@ -29,10 +29,10 @@ export class EventType {
   @Field()
   isRecurring!: boolean;
 
-  @Field()
+  @Field(() => Date)
   createdAt!: Date;
 
-  @Field()
+  @Field(() => Date)
   updatedAt!: Date;
 }
 
@@ -44,10 +44,10 @@ export class OccurrenceType {
   @Field()
   eventId!: string;
 
-  @Field()
+  @Field(() => Date)
   startDate!: Date;
 
-  @Field()
+  @Field(() => Date)
   endDate!: Date;
 
   @Field(() => String, { nullable: true })
@@ -59,10 +59,10 @@ export class OccurrenceType {
   @Field(() => Int, { nullable: true })
   maxCapacity!: number | null;
 
-  @Field()
+  @Field(() => Date)
   createdAt!: Date;
 
-  @Field()
+  @Field(() => Date)
   updatedAt!: Date;
 }
 
@@ -93,7 +93,7 @@ export class RecurrencePatternInput {
   @Field(() => [Int], { nullable: true })
   byMonth!: number[] | null;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   until!: Date | null;
 
   @Field(() => Int, { nullable: true })
@@ -111,10 +111,10 @@ export class CreateEventInput {
   @Field(() => String, { nullable: true })
   location!: string | null;
 
-  @Field()
+  @Field(() => Date)
   startDate!: Date;
 
-  @Field()
+  @Field(() => Date)
   endDate!: Date;
 
   @Field(() => Int)
@@ -138,10 +138,10 @@ export class UpdateEventInput {
   @Field(() => String, { nullable: true })
   location!: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   startDate!: Date | null;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   endDate!: Date | null;
 
   @Field(() => Int, { nullable: true })

@@ -23,19 +23,19 @@ export class RegistrationType {
   @Field()
   status!: string;
 
-  @Field()
+  @Field(() => Date)
   occurrenceStartDate!: Date;
 
-  @Field()
+  @Field(() => Date)
   occurrenceEndDate!: Date;
 
   @Field()
   eventTitle!: string;
 
-  @Field()
+  @Field(() => Date)
   createdAt!: Date;
 
-  @Field()
+  @Field(() => Date)
   updatedAt!: Date;
 }
 
@@ -115,10 +115,10 @@ export class ConflictDetectedErrorType {
   @Field()
   eventTitle!: string;
 
-  @Field()
+  @Field(() => Date)
   startDate!: Date;
 
-  @Field()
+  @Field(() => Date)
   endDate!: Date;
 }
 

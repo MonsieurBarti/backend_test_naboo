@@ -11,7 +11,7 @@ export class OrganizationType {
   @Field()
   slug!: string;
 
-  @Field()
+  @Field(() => Date)
   createdAt!: Date;
 }
 
