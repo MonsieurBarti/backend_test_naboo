@@ -10,6 +10,7 @@ export const OccurrencePropsSchema = z.object({
   title: z.string().optional(),
   location: z.string().optional(),
   maxCapacity: z.number().int().optional(),
+  registeredSeats: z.number().int().min(0).default(0),
   deletedAt: z.coerce.date().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
@@ -22,7 +23,7 @@ export class Occurrence extends AggregateRoot {
     super();
   }
 
-  static create(props: Omit<OccurrenceProps, "deletedAt">): Occurrence {
+  static create(props: Omit<OccurrenceProps, "deletedAt" | "registeredSeats"> & { registeredSeats?: number }): Occurrence {
     return new Occurrence(OccurrencePropsSchema.parse({ ...props, deletedAt: undefined }));
   }
 
@@ -73,6 +74,10 @@ export class Occurrence extends AggregateRoot {
 
   get maxCapacity(): number | undefined {
     return this.props.maxCapacity;
+  }
+
+  get registeredSeats(): number {
+    return this.props.registeredSeats;
   }
 
   get deletedAt(): Date | undefined {

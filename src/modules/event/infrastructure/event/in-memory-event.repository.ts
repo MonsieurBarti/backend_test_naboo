@@ -45,10 +45,6 @@ export class InMemoryEventRepository
     return { items: slice, hasNextPage, totalCount };
   }
 
-  async softDelete(entity: Event, _session?: ClientSession): Promise<void> {
-    this.store.set(entity.id, entity);
-  }
-
   async withTransaction<T>(fn: (session?: ClientSession) => Promise<T>): Promise<T> {
     // In-memory test double: executes fn directly without a real session
     return fn(undefined);

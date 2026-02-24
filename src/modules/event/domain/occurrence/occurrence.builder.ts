@@ -10,6 +10,7 @@ export class OccurrenceBuilder {
   private title: string | undefined = undefined;
   private location: string | undefined = undefined;
   private maxCapacity: number | undefined = undefined;
+  private registeredSeats: number = 0;
   private deletedAt: Date | undefined = undefined;
   private createdAt: Date = faker.date.past();
   private updatedAt: Date = faker.date.recent();
@@ -56,6 +57,11 @@ export class OccurrenceBuilder {
     return this;
   }
 
+  withRegisteredSeats(registeredSeats: number): this {
+    this.registeredSeats = registeredSeats;
+    return this;
+  }
+
   build(): Occurrence {
     return Occurrence.reconstitute({
       id: this.id,
@@ -66,6 +72,7 @@ export class OccurrenceBuilder {
       title: this.title,
       location: this.location,
       maxCapacity: this.maxCapacity,
+      registeredSeats: this.registeredSeats,
       deletedAt: this.deletedAt,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

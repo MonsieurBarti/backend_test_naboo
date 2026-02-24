@@ -94,10 +94,6 @@ export class MongooseEventRepository implements IEventRepository {
     };
   }
 
-  async softDelete(entity: Event, session?: ClientSession): Promise<void> {
-    await this.save(entity, session);
-  }
-
   async withTransaction<T>(fn: (session?: ClientSession) => Promise<T>): Promise<T> {
     const session = await this.getModel().db.startSession();
     try {

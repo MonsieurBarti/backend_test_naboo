@@ -17,6 +17,5 @@ export abstract class IEventRepository {
     first: number;
     after?: string;
   }): Promise<CursorPaginatedResult<Event>>;
-  abstract softDelete(event: Event, session?: ClientSession): Promise<void>;
   abstract withTransaction<T>(fn: (session?: ClientSession) => Promise<T>): Promise<T>;
 }

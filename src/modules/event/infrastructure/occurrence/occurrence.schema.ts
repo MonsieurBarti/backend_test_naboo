@@ -9,6 +9,7 @@ export interface OccurrenceDocument {
   title: string | null;
   location: string | null;
   maxCapacity: number | null;
+  registeredSeats: number;
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -24,6 +25,7 @@ export const OccurrenceSchema = new Schema<OccurrenceDocument>(
     title: { type: String, default: null },
     location: { type: String, default: null },
     maxCapacity: { type: Number, default: null },
+    registeredSeats: { type: Number, required: true, default: 0 },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
