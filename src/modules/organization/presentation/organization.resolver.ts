@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { ClsService } from "nestjs-cls";
 import { TypedCommandBus } from "../../../shared/cqrs/typed-command-bus";
@@ -28,7 +29,7 @@ export class OrganizationResolver {
   async createOrganization(
     @Args("input") input: CreateOrganizationInput,
   ): Promise<typeof CreateOrganizationResult> {
-    const correlationId = this.cls.getId() ?? "unknown";
+    const correlationId = this.cls.getId() ?? randomUUID();
 
     try {
       await this.commandBus.execute(
@@ -61,7 +62,7 @@ export class OrganizationResolver {
     @Args("id", { nullable: true }) id?: string,
     @Args("slug", { nullable: true }) slug?: string,
   ): Promise<OrganizationType | null> {
-    const correlationId = this.cls.getId() ?? "unknown";
+    const correlationId = this.cls.getId() ?? randomUUID();
 
     const org = await this.queryBus.execute(new GetOrganizationQuery({ id, slug, correlationId }));
 

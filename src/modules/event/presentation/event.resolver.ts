@@ -101,7 +101,7 @@ export class EventResolver {
 
   @Mutation(() => CreateEventResult)
   async createEvent(@Args("input") input: CreateEventInput): Promise<typeof CreateEventResult> {
-    const correlationId = this.cls.getId() ?? "unknown";
+    const correlationId = this.cls.getId() ?? randomUUID();
     const id = randomUUID();
 
     try {
@@ -141,7 +141,7 @@ export class EventResolver {
 
   @Mutation(() => UpdateEventResult)
   async updateEvent(@Args("input") input: UpdateEventInput): Promise<typeof UpdateEventResult> {
-    const correlationId = this.cls.getId() ?? "unknown";
+    const correlationId = this.cls.getId() ?? randomUUID();
 
     try {
       const recurrencePattern =
@@ -185,7 +185,7 @@ export class EventResolver {
 
   @Mutation(() => DeleteEventResult)
   async deleteEvent(@Args("input") input: DeleteEventInput): Promise<typeof DeleteEventResult> {
-    const correlationId = this.cls.getId() ?? "unknown";
+    const correlationId = this.cls.getId() ?? randomUUID();
 
     try {
       await this.commandBus.execute(
@@ -216,7 +216,7 @@ export class EventResolver {
     @Args("first", { type: () => Int, defaultValue: 20 }) first = 20,
     @Args("after", { nullable: true }) after?: string,
   ): Promise<EventConnection> {
-    const correlationId = this.cls.getId() ?? "unknown";
+    const correlationId = this.cls.getId() ?? randomUUID();
 
     const result = await this.queryBus.execute(
       new GetEventsQuery({ startDate, endDate, first, after, correlationId }),
@@ -241,7 +241,7 @@ export class EventResolver {
     @Args("first", { type: () => Int, defaultValue: 20 }) first = 20,
     @Args("after", { nullable: true }) after?: string,
   ): Promise<OccurrenceConnection> {
-    const correlationId = this.cls.getId() ?? "unknown";
+    const correlationId = this.cls.getId() ?? randomUUID();
 
     const result = await this.queryBus.execute(
       new GetOccurrencesQuery({ eventId, startDate, endDate, first, after, correlationId }),

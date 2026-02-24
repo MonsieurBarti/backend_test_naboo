@@ -1,20 +1,24 @@
 import { AggregateRoot } from "@nestjs/cqrs";
+import { z } from "zod";
 import type { RecurrencePatternProps } from "./recurrence-pattern";
+import { recurrencePatternSchema } from "./recurrence-pattern";
 
-export interface EventProps {
-  readonly id: string;
-  readonly organizationId: string;
-  readonly title: string;
-  readonly description: string;
-  readonly location?: string;
-  readonly startDate: Date;
-  readonly endDate: Date;
-  readonly maxCapacity: number;
-  readonly recurrencePattern?: RecurrencePatternProps;
-  readonly deletedAt?: Date;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-}
+export const EventPropsSchema = z.object({
+  id: z.uuid(),
+  organizationId: z.uuid(),
+  title: z.string(),
+  description: z.string(),
+  location: z.string().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  maxCapacity: z.number().int(),
+  recurrencePattern: recurrencePatternSchema.optional(),
+  deletedAt: z.coerce.date().optional(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+
+export type EventProps = z.infer<typeof EventPropsSchema>;
 
 export class Event extends AggregateRoot {
   private constructor(private props: EventProps) {
@@ -22,11 +26,11 @@ export class Event extends AggregateRoot {
   }
 
   static create(props: Omit<EventProps, "deletedAt">): Event {
-    return new Event({ ...props, deletedAt: undefined });
+    return new Event(EventPropsSchema.parse({ ...props, deletedAt: undefined }));
   }
 
   static reconstitute(props: EventProps): Event {
-    return new Event(props);
+    return new Event(EventPropsSchema.parse(props));
   }
 
   softDelete(now: Date): void {

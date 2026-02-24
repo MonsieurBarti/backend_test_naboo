@@ -1,18 +1,21 @@
 import { AggregateRoot } from "@nestjs/cqrs";
+import { z } from "zod";
 
-export interface OccurrenceProps {
-  readonly id: string;
-  readonly eventId: string;
-  readonly organizationId: string;
-  readonly startDate: Date;
-  readonly endDate: Date;
-  readonly title?: string;
-  readonly location?: string;
-  readonly maxCapacity?: number;
-  readonly deletedAt?: Date;
-  readonly createdAt: Date;
-  readonly updatedAt: Date;
-}
+export const OccurrencePropsSchema = z.object({
+  id: z.uuid(),
+  eventId: z.uuid(),
+  organizationId: z.uuid(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  title: z.string().optional(),
+  location: z.string().optional(),
+  maxCapacity: z.number().int().optional(),
+  deletedAt: z.coerce.date().optional(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+
+export type OccurrenceProps = z.infer<typeof OccurrencePropsSchema>;
 
 export class Occurrence extends AggregateRoot {
   private constructor(private props: OccurrenceProps) {
@@ -20,11 +23,11 @@ export class Occurrence extends AggregateRoot {
   }
 
   static create(props: Omit<OccurrenceProps, "deletedAt">): Occurrence {
-    return new Occurrence({ ...props, deletedAt: undefined });
+    return new Occurrence(OccurrencePropsSchema.parse({ ...props, deletedAt: undefined }));
   }
 
   static reconstitute(props: OccurrenceProps): Occurrence {
-    return new Occurrence(props);
+    return new Occurrence(OccurrencePropsSchema.parse(props));
   }
 
   softDelete(now: Date): void {
