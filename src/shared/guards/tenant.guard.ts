@@ -2,7 +2,6 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
-  Inject,
   Injectable,
   SetMetadata,
 } from "@nestjs/common";
@@ -11,8 +10,7 @@ import { GqlExecutionContext } from "@nestjs/graphql";
 import type { FastifyRequest } from "fastify";
 import { ClsService } from "nestjs-cls";
 import { z } from "zod";
-import { IOrganizationRepository } from "../../modules/organization/domain/organization/organization.repository";
-import { ORGANIZATION_TOKENS } from "../../modules/organization/organization.tokens";
+import { IOrganizationModuleInProc } from "../in-proc/organization-module.in-proc";
 
 export const IS_PUBLIC_KEY = "isPublic";
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
@@ -23,8 +21,7 @@ const tenantIdSchema = z.string().uuid();
 export class TenantGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    @Inject(ORGANIZATION_TOKENS.ORGANIZATION_REPOSITORY)
-    private readonly orgRepo: IOrganizationRepository,
+    private readonly orgInProc: IOrganizationModuleInProc,
     private readonly cls: ClsService,
   ) {}
 
@@ -44,7 +41,7 @@ export class TenantGuard implements CanActivate {
 
     const tenantId = result.data;
 
-    const org = await this.orgRepo.findById(tenantId);
+    const org = await this.orgInProc.findById(tenantId);
     if (!org) {
       throw new BadRequestException("Organization not found for tenant ID");
     }
