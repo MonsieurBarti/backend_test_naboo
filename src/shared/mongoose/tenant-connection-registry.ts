@@ -11,11 +11,10 @@ export class TenantConnectionRegistry {
   /**
    * Returns a tenant-scoped Mongoose model, creating and caching it on first call.
    *
-   * Collection naming: `{tenantId}_{modelName_lowercase}` (e.g. "64a1b2c3_events")
-   * Phase 1 uses raw tenantId from header (org ObjectId string).
-   * Phase 2 may update to use org slug as the collection prefix.
+   * Collection naming: `{tenantSlug}_{modelName_lowercase}` (e.g. "acme-corp_events")
+   * All callers pass the org slug (from CLS) as the collection prefix — not the raw tenantId.
    *
-   * Cache key: `{tenantId}:{modelName}` — used as the Mongoose model name to prevent
+   * Cache key: `{tenantSlug}:{modelName}` — used as the Mongoose model name to prevent
    * OverwriteModelError when the same logical model is registered for multiple tenants.
    */
   getModel<T>(tenantId: string, modelName: string, schema: Schema<T>): Model<T> {

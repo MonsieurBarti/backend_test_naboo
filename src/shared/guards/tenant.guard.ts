@@ -17,7 +17,7 @@ import { ORGANIZATION_REPOSITORY } from "../../modules/organization/organization
 export const IS_PUBLIC_KEY = "isPublic";
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
-const tenantIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/);
+const tenantIdSchema = z.string().uuid();
 
 @Injectable()
 export class TenantGuard implements CanActivate {
