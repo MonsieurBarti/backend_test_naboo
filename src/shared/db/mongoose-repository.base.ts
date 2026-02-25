@@ -39,7 +39,7 @@ export abstract class MongooseRepositoryBase<
       { $set: doc },
       {
         upsert: true,
-        new: true,
+        returnDocument: "after",
         session,
       },
     );

@@ -40,6 +40,8 @@ pnpm run start:dev
 http://localhost:3000/graphiql
 ```
 
+> See [GRAPHQL_EXAMPLES.md](GRAPHQL_EXAMPLES.md) for ready-to-use queries and mutations with seed data.
+
 **6. (Optional) Seed sample data:**
 
 ```bash
