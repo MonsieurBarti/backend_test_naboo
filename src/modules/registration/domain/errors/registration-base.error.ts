@@ -103,15 +103,3 @@ export class OccurrenceNotFoundError extends RegistrationBaseError {
     });
   }
 }
-
-export class NotOrgMemberError extends RegistrationBaseError {
-  readonly errorCode = "REGISTRATION.NOT_ORG_MEMBER";
-
-  constructor(userId: string, organizationId: string, options?: { correlationId?: string }) {
-    super(`User "${userId}" is not a member of organization "${organizationId}"`, {
-      reportToMonitoring: false,
-      correlationId: options?.correlationId,
-      metadata: { userId, organizationId },
-    });
-  }
-}

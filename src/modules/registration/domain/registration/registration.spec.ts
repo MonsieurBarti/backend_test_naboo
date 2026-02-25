@@ -1,5 +1,6 @@
 import { Registration } from "src/modules/registration/domain/registration/registration";
 import { RegistrationBuilder } from "src/modules/registration/domain/registration/registration.builder";
+import { RegistrationReactivatedEvent } from "src/modules/registration/domain/events/registration-reactivated.event";
 import { FakeDateProvider } from "src/shared/testing/fake-date-provider";
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
@@ -181,6 +182,25 @@ describe("Registration", () => {
         expect(registration.updatedAt).toEqual(reactivateTime);
         expect(registration.isActive).toBe(true);
         expect(registration.isDeleted).toBe(false);
+      });
+
+      it("emits RegistrationReactivatedEvent with correct aggregateId, organizationId, and occurrenceId", () => {
+        const registration = new RegistrationBuilder().asCancelled().build();
+        const reactivateTime = new Date("2024-09-01T10:00:00.000Z");
+
+        registration.reactivate(3, reactivateTime);
+
+        const events = registration.getUncommittedEvents();
+        const reactivatedEvent = events.find(
+          (e) => e instanceof RegistrationReactivatedEvent,
+        );
+        expect(reactivatedEvent).toBeDefined();
+        expect(reactivatedEvent).toBeInstanceOf(RegistrationReactivatedEvent);
+        if (reactivatedEvent instanceof RegistrationReactivatedEvent) {
+          expect(reactivatedEvent.aggregateId).toBe(registration.id);
+          expect(reactivatedEvent.organizationId).toBe(registration.organizationId);
+          expect(reactivatedEvent.occurrenceId).toBe(registration.occurrenceId);
+        }
       });
     });
 

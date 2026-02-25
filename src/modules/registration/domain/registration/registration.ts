@@ -1,6 +1,7 @@
 import { AggregateRoot } from "@nestjs/cqrs";
 import { RegistrationCancelledEvent } from "src/modules/registration/domain/events/registration-cancelled.event";
 import { RegistrationCreatedEvent } from "src/modules/registration/domain/events/registration-created.event";
+import { RegistrationReactivatedEvent } from "src/modules/registration/domain/events/registration-reactivated.event";
 import { IDateProvider } from "src/shared/date/date-provider";
 import { ZodError, z } from "zod";
 
@@ -84,6 +85,13 @@ export class Registration extends AggregateRoot {
       seatCount,
       updatedAt: now,
     };
+    this.apply(
+      new RegistrationReactivatedEvent({
+        aggregateId: this.id,
+        organizationId: this.organizationId,
+        occurrenceId: this.occurrenceId,
+      }),
+    );
   }
 
   updateSeatCount(seatCount: number, now: Date): void {
