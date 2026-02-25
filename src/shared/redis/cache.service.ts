@@ -39,7 +39,17 @@ export class CacheService {
   }
 
   async delPattern(pattern: string): Promise<void> {
-    const keys = await this.redis.keys(pattern);
+    const keys: string[] = [];
+    const stream = this.redis.scanStream({ match: pattern, count: 100 });
+    await new Promise<void>((resolve, reject) => {
+      stream.on("data", (batch: string[]) => {
+        for (const key of batch) {
+          keys.push(key);
+        }
+      });
+      stream.on("end", resolve);
+      stream.on("error", reject);
+    });
     if (keys.length > 0) {
       await this.redis.del(...keys);
     }

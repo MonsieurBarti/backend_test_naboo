@@ -50,7 +50,7 @@ graph TD
 **Rules:**
 - Domain has zero imports from infrastructure, application, or presentation.
 - Commands extend `TypedCommand<void>` — they never return data.
-- Queries extend `TypedQuery<TResult>` — they bypass the domain layer and query the database directly via Prisma/Mongoose for optimized read models.
+- Queries extend `TypedQuery<TResult>` — they bypass the domain layer and query the database directly via Mongoose for optimized read models.
 - All business logic lives in domain aggregate methods.
 
 ### CQRS Pattern
@@ -58,7 +58,7 @@ graph TD
 | Side | Class | Returns | Database access |
 |------|-------|---------|-----------------|
 | Command | `TypedCommand<void>` | void | Via domain repository interfaces |
-| Query | `TypedQuery<TResult>` | Read model (plain type) | Direct Mongoose/Prisma queries — no repository layer |
+| Query | `TypedQuery<TResult>` | Read model (plain type) | Direct Mongoose queries — no repository layer |
 
 ### Module Structure
 
@@ -332,9 +332,6 @@ The question: how to prevent over-booking an occurrence under concurrent registr
 
 ### Current Limitations
 
-**Cache invalidation uses `KEYS` not `SCAN`**
-`CacheService.delPattern()` issues a Redis `KEYS {pattern}` command, which is O(n) across the entire keyspace. On a large Redis instance with millions of keys, this blocks the Redis event loop. Production systems should use `SCAN` with a cursor for non-blocking iteration. This is the most significant operational risk in the current implementation.
-
 **One-time occurrence materialization, no rolling horizon**
 Recurring events are fully materialized at create/update time up to `MAX_OCCURRENCES`. If an event recurs indefinitely (e.g., `DAILY` with no `until` or `count`), only the first `MAX_OCCURRENCES` occurrences are created. There is no scheduled job to expand the horizon as time passes. A production system would need a cron-based re-expansion job or on-demand expansion triggered when a query requests occurrences beyond the materialized range.
 
@@ -354,7 +351,6 @@ The test suite does not use Testcontainers. Running `pnpm test:int` or `pnpm tes
 
 | Improvement | Rationale |
 |-------------|-----------|
-| Replace `KEYS` with `SCAN` in `delPattern` | Eliminates the Redis O(n) blocking risk in production |
 | Scheduled occurrence horizon expansion | Makes `MAX_OCCURRENCES` a soft limit rather than a hard ceiling |
 | JWT authentication + RBAC authorization | Moves from caller-asserted identity to verified identity |
 | DataLoader for nested resolvers | Eliminates N+1 under concurrent GraphQL queries |
