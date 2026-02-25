@@ -22,7 +22,7 @@ pnpm install
 docker compose up -d
 ```
 
-**3. Copy environment file:**
+**3. Create environment file:**
 
 ```bash
 cp .env.example .env
@@ -37,7 +37,7 @@ pnpm run start:dev
 **5. Open GraphQL playground:**
 
 ```
-http://localhost:3000/graphql
+http://localhost:3000/graphiql
 ```
 
 **6. (Optional) Seed sample data:**
@@ -50,22 +50,22 @@ pnpm seed
 
 ## Environment Variables
 
-| Variable      | Required | Default                                                     | Description                          |
-| ------------- | -------- | ----------------------------------------------------------- | ------------------------------------ |
-| `MONGODB_URI` | Yes      | `mongodb://localhost:27017/event-scheduler?replicaSet=rs0`  | MongoDB connection string (replica set required for transactions) |
-| `REDIS_URL`   | No       | `redis://localhost:6379`                                    | Redis connection URL                 |
-| `PORT`        | No       | `3000`                                                      | HTTP port the app listens on         |
-| `LOG_LEVEL`   | No       | `info`                                                      | Pino log level (trace/debug/info/warn/error) |
-| `NODE_ENV`    | No       | `development`                                               | Node environment                     |
-| `IS_LOCAL`    | No       | `false`                                                     | Enables pretty-print logging locally |
+| Variable      | Required | Default                                                    | Description                                                       |
+| ------------- | -------- | ---------------------------------------------------------- | ----------------------------------------------------------------- |
+| `MONGODB_URI` | Yes      | `mongodb://localhost:27017/event-scheduler?replicaSet=rs0` | MongoDB connection string (replica set required for transactions) |
+| `REDIS_URL`   | No       | `redis://localhost:6379`                                   | Redis connection URL                                              |
+| `PORT`        | No       | `3000`                                                     | HTTP port the app listens on                                      |
+| `LOG_LEVEL`   | No       | `info`                                                     | Pino log level (trace/debug/info/warn/error)                      |
+| `NODE_ENV`    | No       | `development`                                              | Node environment                                                  |
+| `IS_LOCAL`    | No       | `false`                                                    | Enables pretty-print logging locally                              |
 
 ## Running Tests
 
-| Command          | Description                                                     |
-| ---------------- | --------------------------------------------------------------- |
-| `pnpm test`      | Unit tests using in-memory repositories (~86 tests, ~5 seconds) |
-| `pnpm test:int`  | Integration tests against real MongoDB (requires Docker Compose running) |
-| `pnpm test:e2e`  | End-to-end GraphQL tests (requires Docker Compose running)      |
+| Command         | Description                                                              |
+| --------------- | ------------------------------------------------------------------------ |
+| `pnpm test`     | Unit tests using in-memory repositories (~86 tests, ~5 seconds)          |
+| `pnpm test:int` | Integration tests against real MongoDB (requires Docker Compose running) |
+| `pnpm test:e2e` | End-to-end GraphQL tests (requires Docker Compose running)               |
 
 ## Technical Choices
 
@@ -103,7 +103,6 @@ src/
 
 ## Future Work
 
-- **Redis SCAN instead of KEYS** — the current `delPattern` implementation uses `KEYS` which is O(n) on large keyspaces and blocks the Redis event loop. Production deployments should use `SCAN` with cursor iteration.
 - **Testcontainers for CI** — integration and e2e tests currently require a pre-running Docker Compose stack. Testcontainers would make them self-contained and CI-friendly.
 - **Occurrence re-expansion job** — recurring event occurrences are materialized at create/update time up to `MAX_OCCURRENCES`. A scheduled job should expand the occurrence horizon as the event window moves forward.
 - **Authentication and authorization** — `userId` and `organizationId` are currently caller-provided with no authentication layer. A JWT-based auth layer with org membership verification is required before production use.
